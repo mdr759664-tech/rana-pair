@@ -31,34 +31,10 @@ bot.start(async (ctx) => {
 💫 আসসালামু আলাইকুম ${name} ভাই! 🙏
 ❤️ RANA-X-MD তে আপনাকে স্বাগতম!
 
-┏━━━━━━━━━━━━━━━━━━━━━━┓
-┃  👑 বোট তথ্য 👑       ┃
-┣━━━━━━━━━━━━━━━━━━━━━━┫
-┃ 🤖 নাম: RANA-X-MD BOT
-┃ 👤 আপনার নাম: ${name}
-┃ 👑 মালিক: JR RANA
-┃ 📞 নাম্বার: ${OWNER_NUMBER}
-┃ 🔥 রিসেন্ট: ${recent}+ Paired
-┃ 🟢 স্ট্যাটাস: Online ✅
-┃ ⚡ স্পিড: Super Fast
-┃ 🔒 নিরাপদ: 100% Safe
-┗━━━━━━━━━━━━━━━━━━━━━━┛
-
-┏━━━━━━━━━━━━━━━━━━━━━━┓
-┃  🌟 ফিচার 🌟          ┃
-┣━━━━━━━━━━━━━━━━━━━━━━┫
-┃ ✅ 10 সেকেন্ডে পেয়ার কোড
-┃ ✅ 200+ কমান্ড আছে
-┃ ✅ 24/7 অনলাইন থাকবে
-┃ ✅ গ্রুপ ম্যানেজমেন্ট
-┃ ✅ অটো ডাউনলোডার
-┃ ✅ AI + Fun + Tools
-┗━━━━━━━━━━━━━━━━━━━━━━┛
-
-✨ 100% ফ্রি | কোন টাকা লাগবে না!
-👇 নিচের বাটনে ক্লিক করে কোড নাও!
+👑 Owner: ${OWNER_NUMBER}
+🔥 Recent: ${recent}+ Paired ✅
+🟢 Status: Online
 `;
-
   await ctx.replyWithPhoto(BOT_IMAGE, {
     caption: caption,
     reply_markup: {
@@ -73,36 +49,12 @@ bot.start(async (ctx) => {
 
 bot.action('menu', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 RANA-X-MD 200+ 』───╮
-*200+ Commands List*
-
-*OWNER (15):*
-.restart .broadcast .block .unblock .ban .addowner .delowner .setpp .setbio .clearsession .jid .leave .join .update
-
-*GROUP (60+):*
-.link .antilink .welcome .goodbye .kick .add .promote .demote .tagall .hidetag .mute .unmute .setname .setdesc .revoke .warn .warnings .delwarn .antilink .antibot .antiviewonce .antidelete .grouplink .invite .groupinfo
-
-*DOWNLOADER (30+):*
-.ytmp3 .ytmp4 .play .song .tiktok .tt .fb .facebook .ig .instagram .twitter .mediafire .gdrive .apk .apkdl .pinterest .spotify
-
-*TOOLS (50+):*
-.sticker .s .toimg .toaudio .tovideo .qr .qrcode .removebg .hd .enhance .translate .trt .tts .ss .screenshot .weather .calc .url .tinyurl
-
-*AI (25+):*
-.ai .gpt .gpt4 .gemini .blackbox .imagine .flux .dalle .bard .llama .mistral
-
-*FUN (40+):*
-.joke .meme .quote .truth .dare .ship .love .hate .8ball .roll .coin .fact .wasted .comrade .gay
-
-*TOTAL: 200+ COMMANDS* 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`*RANA-X-MD - 200+ Commands*\nOWNER: .restart .broadcast .block\nGROUP: .link .kick .promote .tagall\nDOWNLOADER: .ytmp3 .ytmp4 .tiktok\nTOOLS: .sticker .toimg .qr\nAI: .ai .gpt .imagine\nFUN: .joke .meme`, { parse_mode: 'Markdown' });
 });
 
 bot.action('pair', async (ctx) => {
   await ctx.answerCbQuery();
-  ctx.reply(`📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ${OWNER_NUMBER}\n\nশুধু নাম্বার লিখো: 880...`);
+  ctx.reply(`📱 নাম্বার দাও\nExample: ${OWNER_NUMBER}`);
 });
 
 bot.on('text', async (ctx) => {
@@ -110,7 +62,7 @@ bot.on('text', async (ctx) => {
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
   if (number.length < 11) return;
-  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!`);
+  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি...`);
   try {
     const { state, saveCreds } = await useMultiFileAuthState(`./auth_${number}`);
     let version = [2,3000,1015901307];
@@ -125,9 +77,17 @@ bot.on('text', async (ctx) => {
     await delay(3000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 Code: *${code}*\n\nWhatsApp > Linked Devices > Link with phone number > Code বসাও!`, { parse_mode: 'Markdown' });
+      await ctx.reply(`✅ Code: ${code}\nNumber: ${number}`);
     }
-  } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো ভাই!'); }
+  } catch (e) { ctx.reply('❌ Error! 2 min পর Try করো!'); }
 });
 
-bot.launch().then(() => console.log(`✅ RANA-X-MD Running`)).catch(e => console.log(e.message));
+// ==========================================
+// ✅✅✅ এখানে বসবে - একদম শেষে ✅✅✅
+// ==========================================
+(async () => {
+  await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+  console.log("✅ Webhook Delete Done - RANA-X-MD");
+  await bot.launch({ dropPendingUpdates: true });
+  console.log("✅ BOT CONNECTED - RANA-X-MD");
+})();
