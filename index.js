@@ -1,5 +1,5 @@
-process.on('uncaughtException', e => console.log(e.message));
-process.on('unhandledRejection', e => console.log(e.message));
+process.on('uncaughtException', e => console.log('Error:', e.message));
+process.on('unhandledRejection', e => console.log('Error:', e.message));
 
 const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
@@ -18,8 +18,12 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => console.log(`✅ Port Running ${PORT}`));
 
 const bot = new Telegraf(BOT_TOKEN);
-function getRecentCount() { return Math.floor(500 + Math.random() * 350); }
 
+function getRecentCount() { 
+  return Math.floor(500 + Math.random() * 350); 
+}
+
+// ====== সুন্দর Welcome - Pic সহ ======
 bot.start(async (ctx) => {
   const name = ctx.from.first_name || 'Friend';
   const recent = getRecentCount();
@@ -112,7 +116,7 @@ bot.on('text', async (ctx) => {
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো ভাই! ' + e.message); }
 });
 
-// ========== 100% FIXED LAUNCH - TELEGRAM REPLY 100% ASHBE ==========
+// ========== 100% FIXED LAUNCH ==========
 (async () => {
   try {
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
