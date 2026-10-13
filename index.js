@@ -129,14 +129,29 @@ bot.on('text', async function(ctx) {
     }
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
 });
+// LOG সব Message - Debug এর জন্য
+bot.use(async function(ctx, next) {
+  console.log('📩 New Message:', ctx.message?.text, 'From:', ctx.from?.first_name);
+  return next();
+});
+
+bot.catch(function(err, ctx) {
+  console.log('❌ Bot Error:', err.message);
+});
 
 (async function() {
   try {
+    console.log('⏳ Deleting old Webhook...');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
     console.log('✅ Webhook Cleared - RANA-X-MD');
-  } catch (e) { console.log('⚠️ Webhook: ' + e.message); }
+  } catch (e) { console.log('⚠️ Webhook Error: ' + e.message); }
+  
   try {
+    console.log('🚀 Starting Bot... Token exists:', !!BOT_TOKEN);
     await bot.launch({ dropPendingUpdates: true });
-    console.log('✅ BOT CONNECTED - RANA-X-MD - READY');
-  } catch (e) { console.log('❌ LAUNCH FAIL: ' + e.message); }
+    console.log('✅ BOT CONNECTED - RANA-X-MD - READY FOR /start');
+  } catch (e) { 
+    console.log('❌ BOT LAUNCH FAIL: ' + e.message);
+    console.log('👉 Check BOT_TOKEN in Render Environment!');
+  }
 })();
