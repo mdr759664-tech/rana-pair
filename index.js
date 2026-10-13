@@ -42,7 +42,7 @@ bot.start(async function(ctx) {
 ┣━━━━━━━━━━━━━━━━━━━━┫
 ┃ 🤖 নাম: RANA-X-MD
 ┃ 👤 ইউজার: ${name}
-┃ 👑 মালিক: RANA-MD
+┃ 👑 মালিক:♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT
 ┃ 📞 নাম্বার: ${OWNER_NUMBER}
 ┃ 🟢 স্ট্যাটাস: Active ✅
 ┃ ⚡ স্পিড: Ultra Fast
