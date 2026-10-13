@@ -19,7 +19,6 @@ app.listen(PORT, '0.0.0.0', () => console.log(`✅ Port Running ${PORT}`));
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// ====== সুন্দর Welcome - Pic সহ - 500+ ছাড়া ======
 bot.start(async (ctx) => {
   const name = ctx.from.first_name || 'Friend';
   const caption = `
@@ -35,7 +34,7 @@ bot.start(async (ctx) => {
 ┣━━━━━━━━━━━━━━━━━━━━━━┫
 ┃ 🤖 নাম: RANA-X-MD BOT
 ┃ 👤 আপনার নাম: ${name}
-┃ 👑 মালিক: ♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT
+┃ 👑 মালিক: JR RANA
 ┃ 📞 নাম্বার: ${OWNER_NUMBER}
 ┃ 🟢 স্ট্যাটাস: Online ✅
 ┃ ⚡ স্পিড: Super Fast
@@ -44,7 +43,6 @@ bot.start(async (ctx) => {
 ✨ 100% ফ্রি | কোন টাকা লাগবে না!
 👇 নিচের বাটনে ক্লিক করে কোড নাও!
 `;
-
   await ctx.replyWithPhoto(BOT_IMAGE, {
     caption: caption,
     reply_markup: {
@@ -59,38 +57,18 @@ bot.start(async (ctx) => {
 
 bot.action('menu', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 RANA-X-MD 200+ 』───╮
-*200+ Commands List*
-
-*OWNER (15):* .restart .broadcast .block .unblock .ban .addowner .delowner .setpp .setbio .clearsession .jid .leave .join .update
-
-*GROUP (60+):* .link .antilink .welcome .goodbye .kick .add .promote .demote .tagall .hidetag .mute .unmute .setname .setdesc .revoke .warn .warnings
-
-*DOWNLOADER (30+):* .ytmp3 .ytmp4 .play .song .tiktok .fb .ig .twitter .mediafire .gdrive .apk .pinterest .spotify
-
-*TOOLS (50+):* .sticker .s .toimg .toaudio .tovideo .qr .qrcode .removebg .hd .translate .tts .ss .weather .calc
-
-*AI (25+):* .ai .gpt .gpt4 .gemini .blackbox .imagine .flux .dalle
-
-*FUN (40+):* .joke .meme .quote .truth .dare .ship .love .8ball .roll
-
-*TOTAL: 200+ COMMANDS* 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`*RANA-X-MD 200+ MENU*\nTotal 200+ Commands!`, { parse_mode: 'Markdown' });
 });
-
 bot.action('pair', async (ctx) => {
   await ctx.answerCbQuery();
-  ctx.reply(`📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ${OWNER_NUMBER}\n\nশুধু নাম্বার লিখো: 880...`);
+  ctx.reply(`📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ${OWNER_NUMBER}`);
 });
-
 bot.on('text', async (ctx) => {
   const txt = ctx.message.text;
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
   if (number.length < 11) return;
-  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!`);
+  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি...`);
   try {
     const { state, saveCreds } = await useMultiFileAuthState(`./auth_${number}`);
     let version = [2,3000,1015901307];
@@ -105,22 +83,29 @@ bot.on('text', async (ctx) => {
     await delay(3000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 Code: *${code}*\n\nWhatsApp > Linked Devices > Link with phone number > Code বসাও!`, { parse_mode: 'Markdown' });
+      await ctx.reply(`✅ Pair Success!\nNumber: ${number}\nCode: *${code}*`, { parse_mode: 'Markdown' });
     }
-  } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো ভাই! ' + e.message); }
+  } catch (e) { ctx.reply('❌ Error! ' + e.message); }
 });
 
-(async () => {
-  try {
-    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    console.log("✅ Webhook Cleared - RANA-X-MD");
-  } catch (e) {
-    console.log("⚠️ Webhook delete fail, but continuing... " + e.message);
+// ========== 409 FIX - AUTO RETRY ==========
+async function launchBot() {
+  while (true) {
+    try {
+      await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+      console.log("✅ Webhook Cleared - RANA-X-MD");
+      await bot.launch({ dropPendingUpdates: true });
+      console.log("✅ BOT CONNECTED - RANA-X-MD - READY FOR TELEGRAM");
+      break; // success
+    } catch (e) {
+      if (e.message.includes('409')) {
+        console.log("⚠️ 409 Conflict - অন্য Bot চলছে, 5 সেকেন্ড পর Retry...");
+        await delay(5000);
+      } else {
+        console.log("❌ BOT LAUNCH FAIL: " + e.message);
+        await delay(5000);
+      }
+    }
   }
-  try {
-    await bot.launch({ dropPendingUpdates: true });
-    console.log("✅ BOT CONNECTED - RANA-X-MD - READY FOR TELEGRAM");
-  } catch (e) {
-    console.log("❌ BOT LAUNCH FAIL: " + e.message);
-  }
-})();
+}
+launchBot();
