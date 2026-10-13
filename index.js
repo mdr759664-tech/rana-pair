@@ -9,7 +9,6 @@ const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
 const P = require('pino');
 const express = require('express');
-const fs = require('fs');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const BOT_IMAGE = 'https://files.catbox.moe/8gwrio.jpg';
@@ -28,30 +27,28 @@ app.listen(PORT, '0.0.0.0', function() {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// ====== সুন্দর Welcome - Pic সহ ======
 bot.start(async function(ctx) {
   const name = ctx.from.first_name || 'Friend';
   const caption = `
-╭━───━───━───━───━─╮
+╭━━━━━━━━━━━━━━━━━━╮
 ┃  ✨ RANA-X-MD ✨  ┃
-╰━───━───━───━───━─╯
+╰━━━━━━━━━━━━━━━━━━╯
 
 💫 আসসালামু আলাইকুম ${name} ভাই! 🙏
-❤️ RANA-X-MD তে আপনাকে স্বাগতম!
+❤️ RANA-X-MD তে স্বাগতম!
 
-┏━━━━━━━━━━━━━━━━━━━━━━┓
-┃  👑 বোট তথ্য 👑       ┃
-┣━━━━━━━━━━━━━━━━━━━━━━┫
-┃ 🤖 নাম: RANA-X-MD BOT
-┃ 👤 আপনার নাম: ${name}
-┃ 👑 মালিক: ♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT
+┏━━━━━━━━━━━━━━━━━━━━┓
+┃  👑 বোট তথ্য 👑     ┃
+┣━━━━━━━━━━━━━━━━━━━━┫
+┃ 🤖 নাম: RANA-X-MD
+┃ 👤 ইউজার: ${name}
+┃ 👑 মালিক:♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT
 ┃ 📞 নাম্বার: ${OWNER_NUMBER}
-┃ 🟢 স্ট্যাটাস: Online ✅
-┃ ⚡ স্পিড: Super Fast
-┗━━━━━━━━━━━━━━━━━━━━━━┛
+┃ 🟢 স্ট্যাটাস: Active ✅
+┃ ⚡ স্পিড: Ultra Fast
+┗━━━━━━━━━━━━━━━━━━━━┛
 
-✨ 100% ফ্রি | কোন টাকা লাগবে না!
-👇 নিচের বাটনে ক্লিক করে কোড নাও!
+👇 নিচের বাটন থেকে Pair Code নাও! 🔥
 `;
 
   await ctx.replyWithPhoto(BOT_IMAGE, {
@@ -70,26 +67,36 @@ bot.action('menu', async function(ctx) {
   await ctx.answerCbQuery();
   await ctx.reply(`
 ╭───『 RANA-X-MD 200+ 』───╮
-*200+ Commands List*
 
-*OWNER (15):* .restart .broadcast .block .unblock .ban .addowner .delowner .setpp .setbio .clearsession
+🔥 *RANA-X-MD 200+ COMMANDS* 🔥
 
-*GROUP (60+):* .link .antilink .welcome .goodbye .kick .add .promote .demote .tagall .hidetag .mute .unmute
+*👑 OWNER (15):*
+.restart .broadcast .block .unblock .ban .addowner .delowner .setpp .setbio
 
-*DOWNLOADER (30+):* .ytmp3 .ytmp4 .play .song .tiktok .fb .ig .twitter .mediafire .gdrive
+*👥 GROUP (60+):*
+.link .antilink .welcome .goodbye .kick .add .promote .demote .tagall .hidetag .mute .unmute .setname .setdesc .revoke
 
-*TOOLS (50+):* .sticker .toimg .toaudio .tovideo .qr .removebg .hd .translate .tts .ss .weather
+*📥 DOWNLOADER (30+):*
+.ytmp3 .ytmp4 .play .song .tiktok .fb .ig .twitter .mediafire .gdrive .apk
 
-*AI (25+):* .ai .gpt .gpt4 .gemini .blackbox .imagine .flux
+*🛠️ TOOLS (50+):*
+.sticker .s .toimg .toaudio .tovideo .qr .removebg .hd .translate .tts .ss .weather .calc
 
-*TOTAL: 200+ COMMANDS* 🔥
+*🤖 AI (25+):*
+.ai .gpt .gpt4 .gemini .blackbox .imagine .flux .dalle
+
+*😂 FUN (40+):*
+.joke .meme .quote .truth .dare .ship .love .8ball
+
+*TOTAL: 200+ COMMANDS AVAILABLE*
+
 ╰──────────────────╯
 `, { parse_mode: 'Markdown' });
 });
 
 bot.action('pair', async function(ctx) {
   await ctx.answerCbQuery();
-  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER + '\n\nশুধু নাম্বার লিখো: 880...');
+  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER + '\nশুধু নাম্বার লিখো: 8801XXXXXXXXX');
 });
 
 bot.on('text', async function(ctx) {
@@ -97,47 +104,33 @@ bot.on('text', async function(ctx) {
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
   if (number.length < 11) return;
-  
-  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!');
-  
+  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো ভাই!');
   try {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_' + number);
     let version = [2, 3000, 1015901307];
-    try { 
-      const v = await fetchLatestBaileysVersion(); 
-      version = v.version; 
-    } catch {}
-
+    try { const v = await fetchLatestBaileysVersion(); version = v.version; } catch {}
     const sock = makeWASocket({
       version: version,
       auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P().child({ level: 'fatal' })) },
       logger: P({ level: 'silent' }),
       browser: [BOT_NAME, 'Chrome', '1.0.0'],
     });
-    
     sock.ev.on('creds.update', saveCreds);
     await delay(3000);
-    
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply('✅ *Pair Success!*\n\n📱 Number: ' + number + '\n🔑 Code: *' + code + '*\n\nWhatsApp > Linked Devices > Link with phone number > Code বসাও!', { parse_mode: 'Markdown' });
+      await ctx.reply('✅ *Pair Success!*\n\n📱 Number: ' + number + '\n🔑 Code: *' + code + '*\n\nWhatsApp > Linked Devices > Link with phone number এ Code বসাও!', { parse_mode: 'Markdown' });
     }
-  } catch (e) { 
-    ctx.reply('❌ Error! 2 মিনিট পর Try করো ভাই! ' + e.message); 
-  }
+  } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
 });
 
 (async function() {
   try {
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
     console.log('✅ Webhook Cleared - RANA-X-MD');
-  } catch (e) {
-    console.log('⚠️ Webhook delete fail: ' + e.message);
-  }
+  } catch (e) { console.log('⚠️ Webhook: ' + e.message); }
   try {
     await bot.launch({ dropPendingUpdates: true });
     console.log('✅ BOT CONNECTED - RANA-X-MD - READY');
-  } catch (e) {
-    console.log('❌ BOT LAUNCH FAIL: ' + e.message);
-  }
+  } catch (e) { console.log('❌ LAUNCH FAIL: ' + e.message); }
 })();
