@@ -19,14 +19,9 @@ app.listen(PORT, '0.0.0.0', () => console.log(`✅ Port Running ${PORT}`));
 
 const bot = new Telegraf(BOT_TOKEN);
 
-function getRecentCount() { 
-  return Math.floor(500 + Math.random() * 350); 
-}
-
-// ====== সুন্দর Welcome - Pic সহ ======
+// ====== সুন্দর Welcome - Pic সহ - 500+ ছাড়া ======
 bot.start(async (ctx) => {
   const name = ctx.from.first_name || 'Friend';
-  const recent = getRecentCount();
   const caption = `
 ╭━───━───━───━───━─╮
 ┃  ✨ RANA-X-MD ✨  ┃
@@ -42,7 +37,6 @@ bot.start(async (ctx) => {
 ┃ 👤 আপনার নাম: ${name}
 ┃ 👑 মালিক: ♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT
 ┃ 📞 নাম্বার: ${OWNER_NUMBER}
-┃ 🔥 রিসেন্ট: ${recent}+ Paired
 ┃ 🟢 স্ট্যাটাস: Online ✅
 ┃ ⚡ স্পিড: Super Fast
 ┗━━━━━━━━━━━━━━━━━━━━━━┛
@@ -55,7 +49,7 @@ bot.start(async (ctx) => {
     caption: caption,
     reply_markup: {
       inline_keyboard: [
-        [{ text: `🔗 পেয়ার কোড নাও [${recent}+]`, callback_data: 'pair' }],
+        [{ text: `🔗 পেয়ার কোড নাও`, callback_data: 'pair' }],
         [{ text: '📜 মেনু [200+]', callback_data: 'menu' }],
         [{ text: '📢 চ্যানেল', url: CHANNEL_LINK }, { text: '👑 মালিক', url: `https://wa.me/${OWNER_NUMBER}` }]
       ]
@@ -116,7 +110,6 @@ bot.on('text', async (ctx) => {
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো ভাই! ' + e.message); }
 });
 
-// ========== 100% FIXED LAUNCH ==========
 (async () => {
   try {
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
