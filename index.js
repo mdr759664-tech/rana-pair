@@ -4,6 +4,7 @@ process.on('unhandledRejection', e => console.log('Error:', e.message));
 const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
 const P = require('pino');
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
 const express = require('express');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
