@@ -3,13 +3,12 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLat
 const P = require('pino');
 const fs = require('fs');
 
-const BOT_TOKEN = process.env.BOT_TOKEN || '8956462716:AAFx-KxRHhWNALzPzAQeDjn2WqfIt2lAsN4';
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const BOT_IMAGE = 'https://files.catbox.moe/8gwrio.jpg';
 const BOT_NAME = 'RANA-X-MD';
 const OWNER_NAME = '🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT';
 const OWNER_NUMBER = '8801636487523';
 const CHANNEL_LINK = 'https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021';
-
 const bot = new Telegraf(BOT_TOKEN);
 bot.start((ctx) => ctx.replyWithPhoto(BOT_IMAGE, { caption: `🤖 *${BOT_NAME}*\n👑 ${OWNER_NAME}\n\nNumber: 8801XXXXXXXXX\n📢 Channel: ${CHANNEL_LINK}` }));
 bot.on('text', async (ctx) => {
