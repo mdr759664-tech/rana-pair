@@ -8,7 +8,7 @@ process.on('unhandledRejection', function(e) {
 global.botName = "𝗥𝗔𝗡𝗔-X-MD";
 global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
 global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
-global.thumb = "https://files.catbox.moe/8gwrio.jpg";
+global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
 
 const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
