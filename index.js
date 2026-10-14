@@ -10,8 +10,8 @@ global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎�
 global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
 global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
 
-const { Telegraf, Markup } = require('telegraf');
-const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
+const { Telegraf } = require('telegraf');
+const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
 const P = require('pino');
 const express = require('express');
 
@@ -32,44 +32,86 @@ app.listen(PORT, '0.0.0.0', function() {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// /pair কমান্ড যোগ করলাম - যে কেউ /pair লিখলেই কাজ করবে
+// যেকোনো দেশের নাম্বারে কোড দিবে - /pair এর Fix
+async function handlePair(ctx, input) {
+  let number = input? input.replace(/[^0-9]/g, '') : '';
+  if (number.length < 10 || number.length > 15) {
+    return ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nযেকোনো দেশের নাম্বার দাও\nযেমন: 8801837450067 বা 919607... \nলিখো: /pair 8801837450067');
+  }
+  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!');
+  try {
+    const { state, saveCreds } = await useMultiFileAuthState('./auth_' + number);
+    const sock = makeWASocket({
+      version: [2, 3000, 1015901307],
+      auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'fatal' }).child({ level: 'fatal' })) },
+      logger: P({ level: 'silent' }),
+      browser: [BOT_NAME, 'Chrome', '1.0.0'],
+    });
+    sock.ev.on('creds.update', saveCreds);
+    await delay(4000);
+    if (!sock.authState.creds.registered) {
+      const code = await sock.requestPairingCode(number);
+      // COPY BUTTON FIX - পুরান Telegraf এও চলবে
+      await ctx.reply(
+        '✅ *Pair Success!*\n\n📱 Number: ' + number + '\n🔑 CODE: `' + code + '`\n\n👇 নিচের বাটনে চাপ দিলেই কপি হবে!',
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[{ text: '📋 COPY: ' + code, copy_text: { text: code } }]]
+          }
+        }
+      );
+    }
+    try { sock.ws.close(); } catch {}
+  } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
+}
+
+// /pair কমান্ড - যেকোনো ভাবেই লিখলে কাজ করবে
 bot.command('pair', async (ctx) => {
-  await ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nযেকোনো দেশের নাম্বার দাও\nউদাহরণ: ' + OWNER_NUMBER);
+  const args = ctx.message.text.replace('/pair', '').trim();
+  handlePair(ctx, args);
+});
+bot.hears(/^\/pair/i, async (ctx) => {
+  const args = ctx.message.text.replace(/\/pair/i, '').trim();
+  handlePair(ctx, args);
 });
 
+// START - DP সহ Welcome + তোমার Screenshot এর মতো সুন্দর
 bot.start(async function(ctx) {
   const name = ctx.from.first_name || 'Friend';
   let userPhoto = BOT_IMAGE;
   try {
     const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
     if (photos.total_count > 0) {
-      const fileId = photos.photos[0][0].file_id;
-      const fileLink = await ctx.telegram.getFileLink(fileId);
-      userPhoto = fileLink.href;
+      // High Quality DP - fileLink.href বাদ দিলাম, Error ঠিক হলো
+      userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
     }
   } catch (e) {
     userPhoto = BOT_IMAGE;
   }
 
+  // তোমার Mark করা BOSS XMD এর মতো সুন্দর Welcome
   const caption = `
-╭━━━━━━━━━━━━━━━━━━╮
-┃ ✨ ${BOT_NAME} ✨ ┃
-╰━━━━━━━━━━━━━━━━━━╯
-
-💫 আসসালামু আলাইকুম ${name} ভাই! 🙏
-❤️ ${BOT_NAME} তে স্বাগতম!
-
-┏━━━━━━━━━━━━━━━━━━━━┓
-┃ 👑 বোট তথ্য 👑 ┃
-┣━━━━━━━━━━━━━━━━━━━━┫
-┃ 🤖 নাম: ${BOT_NAME}
-┃ 👤 ইউজার: ${name}
-┃ 👑 মালিক: ${global.ownerName}
-┃ 📞 নাম্বার: ${OWNER_NUMBER}
-┃ 🟢 স্ট্যাটাস: Active ✅
-┗━━━━━━━━━━━━━━━━━━━━┛
-
-👇 Pair Code নাও! 👇
+╭─❒ 🥷 ${BOT_NAME} ❒
+│
+├─💗 স্বাগতম @${name}! 💗
+│
+├─🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔
+│ ├─ 🌸 ༉
+│ ├─ 🍒 ༉
+│ └─ 💍 ༉
+│
+├─🍷 ༉-এ তোমার আগমন সুন্দর হোক।
+├─🌷 সবার সাথে মিলেমিশে থাকো এবং
+│ আড্ডা উপভোগ করো।
+├─✨ প্রয়োজন হলে ${BOT_NAME}-এর
+│ commands ব্যবহার করতে পারো।
+│
+├─👤 ইউজার: ${name}
+├─👑 মালিক: ${global.ownerName}
+├─🟢 স্ট্যাটাস: Active ✅
+│
+╰─➡️ POWERED BY ${BOT_NAME} 🖤🥷
 `;
 
   await ctx.replyWithPhoto(userPhoto, {
@@ -97,42 +139,19 @@ bot.action('emoji', async function(ctx) {
 
 bot.action('pair', async function(ctx) {
   await ctx.answerCbQuery();
-  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER + '\nশুধু নাম্বার লিখো: 880...');
+  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER + '\nলিখো: /pair 880...');
 });
 
 bot.on('text', async function(ctx) {
   const txt = ctx.message.text;
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
-  if (number.length < 10 || number.length > 15) return; // যেকোনো দেশের নাম্বার 10-15 ডিজিট
-  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!');
-  try {
-    const { state, saveCreds } = await useMultiFileAuthState('./auth_' + number);
-    let version = [2, 3000, 1015901307];
-    try { const v = await fetchLatestBaileysVersion(); version = v.version; } catch {}
-    const sock = makeWASocket({
-      version: version,
-      auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P().child({ level: 'fatal' })) },
-      logger: P({ level: 'silent' }),
-      browser: [BOT_NAME, 'Chrome', '1.0.0'],
-    });
-    sock.ev.on('creds.update', saveCreds);
-    await delay(5000);
-    if (!sock.authState.creds.registered) {
-      const code = await sock.requestPairingCode(number);
-
-      // 100% SOTHIK ONE TAP COPY BUTTON
-      await ctx.replyWithMarkdown(
-        `✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 CODE: \`${code}\`\n\n👇 নিচের বাটনে চাপ দিলেই কপি হবে!`,
-        Markup.inlineKeyboard([
-          [Markup.button.copyText(`📋 COPY: ${code}`, code)]
-        ])
-      );
-    }
-  } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
+  if (number.length >= 10 && number.length <= 15) {
+    handlePair(ctx, number);
+  }
 });
 
-bot.catch(function(err, ctx) {
+bot.catch(function(err) {
   console.log('Bot Error:', err.message);
 });
 
