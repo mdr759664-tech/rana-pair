@@ -5,8 +5,8 @@ process.on('unhandledRejection', function(e) {
   console.log('Error:', e.message);
 });
 
-global.botName = "𝗥𝗔𝗡𝗔-X-MD";
-global.ownerName = "┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
+global.botName = "RANA-X-MD";
+global.ownerName = "RANA";
 global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
 global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
 
@@ -32,16 +32,30 @@ app.listen(PORT, '0.0.0.0', function() {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// One Tap Copy Button
+// One Tap Copy - Ok lekha asbe na, direct copy hobe
 bot.action(/copy_(.*)/, async function(ctx){
   try{
-    await ctx.answerCbQuery('Copied! ✅');
-    await ctx.reply('📋 COPY CODE: ' + ctx.match[1]);
+    await ctx.answerCbQuery('✅ Copied: ' + ctx.match[1]);
   }catch{}
 });
 
 bot.start(async function(ctx) {
   const name = ctx.from.first_name || 'Friend';
+
+  // User er DP ber kora
+  let userPhoto = BOT_IMAGE;
+  try {
+    const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
+    if (photos.total_count > 0) {
+      const fileId = photos.photos[0][0].file_id;
+      const fileLink = await ctx.telegram.getFileLink(fileId);
+      userPhoto = fileLink.href;
+    }
+  } catch (e) {
+    console.log('DP Error:', e.message);
+    userPhoto = BOT_IMAGE;
+  }
+
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━╮
 ┃ ✨ ${BOT_NAME} ✨ ┃
@@ -63,8 +77,9 @@ bot.start(async function(ctx) {
 
 🎉 500+ Emoji | 200+ Commands 🔥
 👇 Pair Code নাও! 👇
+`;
 
-  await ctx.replyWithPhoto(BOT_IMAGE, {
+  await ctx.replyWithPhoto(userPhoto, {
     caption: caption,
     reply_markup: {
       inline_keyboard: [
@@ -97,12 +112,6 @@ bot.action('emoji', async function(ctx) {
   await ctx.reply(`
 ╭───『 500+ EMOJI 』───╮
 😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘
-😗 😙 😚 🥲 🥹 ☺️ 😛 😜 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐
-🤨 😐 😑 😶 🫥 😶‍🌫️ 😏 😒 🙄 😬 😮‍💨 🤥 🫨 😌 😔 😪
-🤤 😴 😷 🤒 🤕 🤢 🤮 🥵 🥶 🥴 😵 😵‍💫 🤯 🤠 🥳 🥸
-😎 🤓 🧐 😕 🫤 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😦 😧
-😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠
-🤬 😈 👿 💀 ☠️ 💩 🤡 👹 👺 👻 👽 👾 🤖 🎃 😺 😸
 TOTAL 500+ 🔥
 ╰──────────────────╯
 `, { parse_mode: 'Markdown' });
@@ -133,37 +142,32 @@ bot.on('text', async function(ctx) {
     await delay(5000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 CODE: ${code}\n\nBot: ${BOT_NAME}\nOwner: ${global.ownerName}`);
-      await ctx.replyWithMarkdownV2(`\`${code}\``);
-      await ctx.reply(`📋 COPY CODE: ${code}\n\nWhatsApp > Linked Devices > Link with phone number এ Code বসাও!`, {
-        reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE: ${code}`, callback_data: `copy_${code}` }]] }
+
+      // One Tap Copy Button + Code Block
+      await ctx.replyWithMarkdownV2(`✅ *Pair Success\\!*\n\n📱 Number: ${number}\n🔑 CODE: \`${code}\`\n\nTap kore Copy koro 👇`);
+
+      await ctx.reply(`📋 COPY CODE: ${code}`, {
+        reply_markup: {
+          inline_keyboard: [[{ text: `📋 COPY: ${code}`, callback_data: `copy_${code}` }]]
+        }
       });
     }
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
 });
 
-bot.use(async function(ctx, next) {
-  console.log('📩 New Message:', ctx.message?.text, 'From:', ctx.from?.first_name);
-  return next();
-});
-
 bot.catch(function(err, ctx) {
-  console.log('❌ Bot Error:', err.message);
+  console.log('Bot Error:', err.message);
 });
 
 (async function() {
   try {
-    console.log('⏳ Deleting old Webhook...');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    console.log('✅ Webhook Cleared - ' + BOT_NAME);
-  } catch (e) { console.log('⚠️ Webhook Error: ' + e.message); }
-
+    console.log('Webhook Cleared - ' + BOT_NAME);
+  } catch (e) {}
   try {
-    console.log('🚀 Starting Bot... Token exists:',!!BOT_TOKEN);
     await bot.launch({ dropPendingUpdates: true });
-    console.log('✅ BOT CONNECTED - ' + BOT_NAME + ' - READY FOR /start');
+    console.log('BOT CONNECTED - ' + BOT_NAME);
   } catch (e) {
-    console.log('❌ BOT LAUNCH FAIL: ' + e.message);
-    console.log('👉 Check BOT_TOKEN in Render Environment!');
+    console.log('BOT LAUNCH FAIL: ' + e.message);
   }
 })();
