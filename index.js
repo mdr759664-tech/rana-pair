@@ -14,12 +14,10 @@ const OWNER_NUMBER = '8801636487523';
 const CHANNEL_LINK = 'https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021';
 
 const app = express();
-app.get('/', (req,res) => res.send(BOT_NAME + ' Running ✅'));
+app.get('/', (req,res) => res.send(BOT_NAME + ' Running ✅🔥'));
 app.listen(process.env.PORT || 10000, '0.0.0.0', ()=> console.log('✅ Port OK'));
 
 const bot = new Telegraf(BOT_TOKEN);
-
-// ✅ Copy Button - No ok popup
 bot.action(/copy_(.*)/, async ctx => { try{ await ctx.answerCbQuery(); }catch{} });
 
 bot.start(async ctx => {
@@ -30,30 +28,70 @@ bot.start(async ctx => {
     if(p.total_count>0) pic = p.photos[0][0].file_id;
   }catch{}
   await ctx.replyWithPhoto(pic, {
-    caption: `╭━━━━━━━━━━━━━━━━━━╮\n┃ ✨ ${BOT_NAME} ✨ ┃\n╰━━━━━━━━━━━━━━━━━━╯\n\n💫 আসসালামু আলাইকুম ${name} ভাই! 🙏\n❤️ RANA-X-MD তে স্বাগতম!\n\n┏━━━━━━━━━━━━━━━━━━━━┓\n┃ 👑 বোট তথ্য 👑 ┃\n┣━━━━━━━━━━━━━━━━━━━━┫\n┃ 🤖 নাম: ${BOT_NAME}\n┃ 👤 ইউজার: ${name}\n┃ 🟢 স্ট্যাটাস: Active ✅\n┗━━━━━━━━━━━━━━━━━━━━┛\n\n👇 Pair Code নাও! 👇`,
+    caption: `
+╔════════════════════════╗
+║ ✨💫 RANA-X-MD 💫✨ ║
+╚════════════════════════╝
+
+💖 আসসালামু আলাইকুম ${name} ভাই! 🙏✨
+
+╔════════════════════════╗
+║ 👑 BOT INFORMATION 👑 ║
+╠════════════════════════╣
+║ 🤖 Name: ${BOT_NAME} 🔥
+║ 👤 User: ${name} 💫
+║ 👑 Owner: RANA-MD 👑
+║ 📞 ${OWNER_NUMBER} 📲
+║ 🟢 Active ✅ | ⚡ Fast 🚀
+║ 🎭 Emoji: 2000+ 🔥💥
+╚════════════════════════╝
+
+🎉 200+ Commands | 2000+ Emoji | 💯% Working 🎊
+👇 নিচে থেকে Pair Code নাও ভাই! 👇💥
+`,
     reply_markup: { inline_keyboard: [
-      [{ text: '🔗 পেয়ার কোড নাও', callback_data: 'pair' }],
-      [{ text: '📜 মেনু [200+]', callback_data: 'menu' }],
-      [{ text: '🎭 Emoji [500+]', callback_data: 'emoji' }],
-      [{ text: '📢 চ্যানেল', url: CHANNEL_LINK }, { text: '👑 মালিক', url: 'https://wa.me/' + OWNER_NUMBER }]
+      [{ text: '🔗✨ পেয়ার কোড নাও ✨🔗', callback_data: 'pair' }],
+      [{ text: '📜🔥 মেনু [200+]', callback_data: 'menu' }, { text: '🎭💥 Emoji [2000+]', callback_data: 'emoji' }],
+      [{ text: '📢💫 চ্যানেল', url: CHANNEL_LINK }, { text: '👑❤️ মালিক', url: 'https://wa.me/' + OWNER_NUMBER }]
     ]}
   });
 });
 
-bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`╭───『 ${BOT_NAME} 200+ 』───╮\n🔥 200+ COMMANDS 🔥\n╰──────────────────╯`, { parse_mode: 'Markdown' }); });
-bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`╭───『 500+ EMOJI 』───╮\n😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇\n╰──────────────────╯`); });
-bot.action('pair', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`📱 তোমার WhatsApp নাম্বার দাও\nEx: ${OWNER_NUMBER}`); });
+bot.action('menu', async ctx => {
+  await ctx.answerCbQuery();
+  await ctx.reply(`╔══『 🔥 ${BOT_NAME} 200+ COMMANDS 🔥 』══╗\n║ 👑 OWNER:.restart.broadcast.block 💥\n║ 👥 GROUP:.link.antilink.kick.tagall 🚀\n║ 📥 DOWNLOADER:.ytmp3.play.tiktok.fb 🎵\n║ 🛠️ TOOLS:.sticker.toimg.qr.hd.removebg ✨\n║ 🤖 AI:.ai.gpt.gemini.imagine 💫\n╚══════════════════════════════╝`);
+});
 
-// ✅ 1000% CONNECT + সুন্দর Design
+bot.action('emoji', async ctx => {
+  await ctx.answerCbQuery();
+  await ctx.reply(`💥 তোমার জন্য 2000+ Emoji Ready ভাই! 💥\n\n🥰😍🥹😘😗😙😚😛😜😝🤗🤭🤫🤔🫡🤐🤨😐😑😶🫥😏😒🙄😬🤥😌😔😪🤤😴😷🤒🤕🤢🤮🥵🥶🥴😵🤯🤠🥳😎🤓🧐😕😟🙁☹️😮😯😲😳🥺😦😧😨😰😥😢😭😱😖😣😞😓😩😫🥱😤😡🤬😈👿💀☠️💩🤡👹👺👻👽👾🤖🎃😺😸😹😻😼😽🙀😿🙈🙉🙊❤️🧡💛💚💙💜🖤🤍🤎💔❣️💕💞💓💗💖💝💘💟💯💢💥💫💦💨👋🤚🖐️✋🖖👌🤌🤏✌️🤞🫰🤟🤘🤙👈👉👆👇☝️👍👎✊👊🤛🤜👏🙌🫶👐🤲🤝🙏💪🦾🦿🦵🦶👂🦻👃🧠👀👁️👅👄💋🩸👶👦👧🧑👨👩👮🕵️👷💂🥷🧙🧝🧛🧟🧞🧜🧚👼🤰🫃🤱💃🕺🧖🧗🤺🏇⛷️🏂🏌️🏄🚣🏊⛹️🏋️🚴🤸🤼🤽🤾🧘🎪🛹⚽🏀🏈🎾🎳🏏🎯🎱🎮🎲🧩🎨🎭🎬🎤🎧🎸🎹🎺🎻🥁📱💻🖥️⌨️🖱️💾💿📀📷📸📹📼🔍🔎💡🔦🏮📔📕📚📓📃📜📄📰💰💴💵💶💷💸💳✉️📧📦📫📪📮✏️🖋️📝💼📁📅📆📇📈📉📊📋📌📍📎🔒🔓🔏🔐🔑🔨⚒️🛠️🗡️⚔️💣🏹🛡️🔧⚙️⛓️🧲⚗️🧪🧬🔬🔭📡💉💊🩹🩺🚪🛗🪞🛏️🛋️🚽🚿🛁🧴🧹🧺🪣🧼🪥🧽🚬⚰️🗿🏧🚮♿🚹🚺⚠️⛔🚫📵🔞☢️⬆️↗️➡️↘️⬇️↙️⬅️↖️↕️↔️↩️↪️🔃🔄▶️⏩⏭️⏯️◀️⏪⏮️🔼⏫🔽⏬⏸️⏹️🔅🔆📶♀️♂️✖️➕➖➗♾️‼️⁉️❓❔❕❗💱💲⚕️♻️⚜️🔱📛🔰⭕✅☑️✔️❌➰➿✳️✴️❇️©️®️™️#️⃣0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟🔠🔡🔢🅰️🆎🅱️🆑🅾️🆘
+
+🥳🎊🎉🎈🎁🎀🎗️🏆🥇🥈🥉🏅🎖️🏵️🎗️
+
+🌈🌞🌝🌚🌕🌖🌗🌘🌑🌒🌓🌔🌙🌍🌎🌏🌋🌌🌠⭐🌟💫☄️🔥💥🌪️🌈☀️🌤️⛅🌦️🌧️⛈️🌩️🌨️❄️☃️⛄🌬️💨💧💦☔☂️🌊
+
+🍏🍎🍐🍊🍋🍌🍉🍇🍓🫐🍈🍒🍑🥭🍍🥥🥝🍅🍆🥑🥦🥬🥒🌶️🫑🌽🥕🫒🧄🧅🥔🍠🥐🥯🍞🥖🥨🧀🥚🍳🧈🥞🧇🫓🥠🥡🍦🍧🍨🍩🍪🎂🍰🧁🥧🍫🍬🍭🍮🍯🍼🥛☕🫖🍵🍶🍾🍷🍸🍹🍺🍻🥂🥃🫗🥤🧋🧃🧉🧊🥢🍽️🍴🥄
+
+✈️🚀🛸🚁🛶⛵🚤🛥️🛳️⛴️🚢⚓🪝⛽🚧🚨🚥🚦🛑🚏🗺️🗿🗽🗼🏰🏯🏟️🎡🎢🎠⛲⛱️🏖️🏝️🏜️🌋⛰️🏔️🗻🏕️⛺🏠🏡🏘️🏚️🏗️🏭🏢🏬🏣🏤🏥🏦🏨🏪🏫🏩💒🏛️⛪🕌🛕🕍⛩️🕋⛲⛩️
+
+❤️‍🔥❤️‍🩹💖💝💘💝💖💗💓💞💕💟❣️💔❤️‍🔥💋👑💍💎👑
+
+🔥💯 এই হলো 2000+ Emoji ভাই! 🔥💯
+`);
+});
+
+bot.action('pair', async ctx => {
+  await ctx.answerCbQuery();
+  await ctx.reply(`╔════════════════╗\n║ 📱 NUMBER দাও 📱 ║\n╚════════════════╝\n\n💫 Ex: ${OWNER_NUMBER} 💫\nশুধু নাম্বার লিখো: 880... 📲🔥`);
+});
+
 bot.on('text', async ctx => {
   let txt = ctx.message.text;
   if(txt.startsWith('/')) return;
   let number = txt.replace(/[^0-9]/g,'');
   if(number.length < 11) return;
-
   const dir = './auth_' + number;
   if(fs.existsSync(dir)) fs.rmSync(dir,{recursive:true,force:true});
-
   try{
     const { state, saveCreds } = await useMultiFileAuthState(dir);
     const { version } = await fetchLatestBaileysVersion();
@@ -67,41 +105,41 @@ bot.on('text', async ctx => {
     sock.ev.on('creds.update', saveCreds);
     sock.ev.on('connection.update', async u => {
       if(u.connection === 'open'){
-        await ctx.reply(`╭━━━━━━━━━━━━━━━━━━╮\n┃ ✅ 1000% CONNECTED ┃\n╰━━━━━━━━━━━━━━━━━━╯\n\n🎉 ${number} Connected!\n🤖 ${BOT_NAME} Ready!`);
+        await ctx.reply(`╔════════════════════════╗\n║ ✅💥 1000% CONNECTED 💥✅ ║\n╚════════════════════════╝\n\n🎉🎊 ${number} Connected! 🎊🎉\n🤖💫 ${BOT_NAME} Ready! 💫🤖\n🔥💥 100% Working! 💥🔥`);
       }
     });
-
     await delay(8000);
-    if(sock.authState.creds.registered) return ctx.reply('⚠️ Already Linked!');
-
+    if(sock.authState.creds.registered) return ctx.reply('⚠️ Already Linked! 😅💫');
     let code = await sock.requestPairingCode(number);
     code = code.replace(/-/g,'').toUpperCase();
 
-    // ✅ তোমার চাওয়া মতো সুন্দর Design
     await ctx.reply(`
-╭━━━━━━━━━━━━━━━━━━╮
-┃ 🔑 RANA PAIR CODE ┃
-╰━━━━━━━━━━━━━━━━━━╯
+╔════════════════════════╗
+║ 🔑💥 RANA PAIR CODE 💥🔑 ║
+╚════════════════════════╝
 
-┏━━━━━━━━━━━━━━━━━━━━┓
-┃ 📱 Number: ${number}
-┃ 🔑 CODE: ${code}
-┃ ⏰ Valid: 30 Sec
-┃ 🟢 Status: Active
-┗━━━━━━━━━━━━━━━━━━━━┛
+╔════════════════════════╗
+║ 👑 INFORMATION 👑 ║
+╠════════════════════════╣
+║ 📱 Number: ${number} 📲💫
+║ 🔑 CODE: ${code} 🔥💥
+║ ⏰ Valid: 30 Sec ⏳✨
+║ 🟢 Status: Active ✅🚀
+║ 🤖 Bot: ${BOT_NAME} 👑
+╚════════════════════════╝
 
-💡 WhatsApp > Linked Devices > Link with phone number এ বসাও!
+💡💫 WhatsApp > Linked Devices > Link with phone number এ বসাও! 🚀✨
+
+🎉💥 1000% Working Code! 💥🎉
 `, { parse_mode: 'Markdown' });
 
-    await ctx.replyWithHTML(`<code>${code}</code>`, {
-      reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE: ${code}`, callback_data: `copy_${code}` }]] }
+    await ctx.replyWithHTML(`<code>${code}</code> 🔥💥`, {
+      reply_markup: { inline_keyboard: [[{ text: `📋💥 COPY CODE: ${code} 💥📋`, callback_data: `copy_${code}` }]] }
     });
 
     setTimeout(()=> { if(fs.existsSync(dir)) fs.rmSync(dir,{recursive:true,force:true}); }, 120000);
-
   }catch(e){
-    console.log(e.message);
-    ctx.reply(`❌ Error: ${e.message}\n\n1. WhatsApp Update করো\n2. Number একই Phone এর দাও\n3. Koyeb এ Deploy দাও`);
+    ctx.reply(`❌ Error: ${e.message} 😢💔`);
   }
 });
 
