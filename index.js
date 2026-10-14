@@ -5,11 +5,10 @@ process.on('unhandledRejection', function(e) {
   console.log('Error:', e.message);
 });
 
-global.botName = "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔-MD";
+global.botName = "𝗥𝗔𝗡𝗔-X-MD";
 global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
 global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
 global.thumb = "https://files.catbox.moe/8gwrio.jpg";
-global.sessionId = "IK~H4sIAAAAAAAAA5VUy27bRhT9lWC2EmJSL1ICDISkKIp6UZRMvYosRuRQHPE9HNKkAgPtqqvWLrJpgTrdZNNFkGXTfyj6A13Vy678CQVlO86iCVwCBIeXnHvPPeeeeQWCECdoiArQeQUigjNIUbmkRYRAB4ipbSMCqsCCFIIOkIXZjjdGNNlDMoFpflKoqag1XSdbbTa2G/f8yWA2G+/rPeMUXFRBlG49bH4hob2hG3HvVRgxN4Qwz+Jajq11r88EaBmt5GieLvnlQB7gfHwKLsqMEBMc7OTIQT4i0BuiYgoxeRr8ZLQXbdTruumZey5bnLkaJuqm2RPpcOjpmZ6OBicDYytYNf5p8GM7McTYN3XKI7YYb8/9iU6ZylxYDr1+JSnUEd7HfLY+c4Q7+AneBchSLRRQTIsn8x5ORHU8aDX6vdgtlDOXZyketSJeH690W+pqAyaccaEWO/0n8q6t8oXSJFKTqLgJD6M4Gh0ETZ0ogmJRqxi215y+XtW3Us34FPiUPMyK+394340ire7nedhqy4eoP+hVzNV+lbUis21Fi8F+ZdB4XXe7nuE+DX7Oj5ppY8tNhsIqF8PJSDCgoi7QRtPcrjiP2EGRTHqaDOfyI3xIU/IllDFbZJNFxultNjD3Q1GsxNqUsRJtXHS7S3lmOAeRmSLGJFJO8zDaY+2wGi9X1ESO7PTm2KvwDrXPZ3pcyHS/G9V1SdydHjtyUaFaoMNeVAFBO5xQAikOg2OMqVUBtLI5MgmiR3qBVV/wWj9VRF1IF1tSj/zGfjE1uD7CwryxtSwcMr4hjPexfAqqICKhiZIEWX2c0JAUY5QkcIcS0PnqZRUEKKd3wpXleLZeBTYmCTWCNPJCaD3I+vErNM0wDei8CEypXCACOsxjGFGKg11SMpkGkJgOzpDkQJqAjg29BH3sERFkgQ4lKfroWym0Suq52VLUhWYdVIF/lARboAN4nmH5OtdoMkyL63AvkufnZVoYRc8DREEVeMffavVmu8GwfKvRrDFso8O9KONVEMAyF7j5+bfbq8vX/7x/d/Phpz/f3Lz9/fb66ofb66uvb6+vvjs+ry5f315ffXMfu7y/f7z55V256/v3f735+/3bPz48e3bz67elevedl0AtRCH2EtAB0iSY41DuyoNsFVtrRRHknSDtBPDI1MPQ3Ym66GeO5y+zynayOp/vYGMAeXag5LP1dtNea+hMHZ7VpnM2lM5P/yMJ6ABVbWBTb4Zbp9VmN9O67U6xUXMarXE9zoseqmwXOlG2fjA780J/0Tu0rbXE9QKjz+pGPnGQMeOmhuJsSWrZrnUyDqB6nNAqsFCGTfRpsWk6JhOieG11uoz96X68HFZ2a0RYjQ7XTL8urkapqTukq1qjhqwcKpGYLc2FtknCIKT1YlRpT3Cj0eekFMWCtIhbltgV7uxwtKN3fwzi46CWM1C+2hgdT5V7NT8n9h3ecmSZi+onW++Pp89YXFzMuMZm45ET/7Dg5VBJpWU2mc8SY6nU7GU3cAvJbe8ZCoUEXFy8rILIg9QOiQ86AAYWCY/FSZiWFlADO/xCMUlIVEnYzcuGPZhQ4dFWZ9hHCYV+BDos12ZbTYZj21XgF0IUzSmkD3YEQnnJIg8u/gX6N3LsqwcAAA==";
 
 const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
@@ -64,7 +63,6 @@ bot.start(async function(ctx) {
 
 🎉 500+ Emoji | 200+ Commands 🔥
 👇 Pair Code নাও! 👇
-`;
 
   await ctx.replyWithPhoto(BOT_IMAGE, {
     caption: caption,
