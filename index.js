@@ -126,7 +126,7 @@ bot.on('text', async function(ctx) {
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 Code নিচে দেওয়া হলো!`);
-await ctx.reply(code);
+await ctx.replyWithMarkdownV2(`\`${code}\``);
 await ctx.reply(`WhatsApp > Linked Devices > Link with phone number এ Code বসাও!`); 
     }
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
