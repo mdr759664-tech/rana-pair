@@ -4,7 +4,7 @@ const P = require('pino');
 const express = require('express');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const BOT_IMAGE = 'https://files.catbox.moe/8gwrio.jpg';
+const BOT_IMAGE = 'https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg;
 const BOT_NAME = 'RANA-X-MD';
 const OWNER_NAME = '🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔-MD BOT';
 const OWNER_NUMBER = '8801636487523';
