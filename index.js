@@ -143,4 +143,11 @@ bot.on('text', async ctx => {
   }
 });
 
-bot.launch({ dropPendingUpdates: true });
+(async () => {
+  try {
+    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+    console.log('Webhook Cleared');
+  } catch(e){}
+  await bot.launch({ dropPendingUpdates: true });
+  console.log('BOT READY FOR /start');
+})();
