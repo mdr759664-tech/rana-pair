@@ -159,15 +159,34 @@ bot.catch(function(err, ctx) {
   console.log('Bot Error:', err.message);
 });
 
-(async function() {
-  try {
-    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    console.log('Webhook Cleared - ' + BOT_NAME);
-  } catch (e) {}
-  try {
-    await bot.launch({ dropPendingUpdates: true });
-    console.log('BOT CONNECTED - ' + BOT_NAME);
-  } catch (e) {
-    console.log('BOT LAUNCH FAIL: ' + e.message);
+// --- RANA-X-MD SINGLE INSTANCE FIX ---
+let isRunning = false;
+
+async function startBot() {
+  if (isRunning) {
+    console.log('Bot already running, skipping...');
+    return;
   }
-})();
+  isRunning = true;
+
+  try {
+    console.log('Cleaning old sessions...');
+    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+    await bot.telegram.callApi('close').catch(()=>{});
+    await new Promise(r => setTimeout(r, 5000)); // 5 sec wait
+    
+    await bot.launch({ dropPendingUpdates: true });
+    console.log('✅ BOT CONNECTED - RANA-X-MD');
+  } catch (e) {
+    isRunning = false;
+    console.log('BOT LAUNCH FAIL: ' + e.message);
+    console.log('Retrying in 20 sec...');
+    setTimeout(startBot, 20000);
+  }
+}
+
+startBot();
+
+// Graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
