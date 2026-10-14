@@ -9,6 +9,7 @@ const { Telegraf } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
 const P = require('pino');
 const express = require('express');
+const fs = require('fs');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const BOT_IMAGE = 'https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg';
@@ -27,7 +28,6 @@ app.listen(PORT, '0.0.0.0', function() {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// ✅ COPY BUTTON - তোমার চাওয়া মতো
 bot.action(/copy_(.*)/, async (ctx) => {
   try {
     await ctx.answerCbQuery(`✅ ${ctx.match[1]} Copied!`, { show_alert: true });
@@ -36,8 +36,6 @@ bot.action(/copy_(.*)/, async (ctx) => {
 
 bot.start(async function(ctx) {
   const name = ctx.from.first_name || 'Friend';
-
-  // ✅ DP SOHO WELCOME - তোমার চাওয়া মতো
   let userPic = BOT_IMAGE;
   try {
     const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
@@ -45,7 +43,6 @@ bot.start(async function(ctx) {
       userPic = photos.photos[0][0].file_id;
     }
   } catch {}
-
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━╮
 ┃ ✨ RANA-X-MD ✨ ┃
@@ -68,7 +65,6 @@ bot.start(async function(ctx) {
 🎉 500+ Emoji | 200+ Commands 🔥
 👇 Pair Code নাও! 👇
 `;
-
   await ctx.replyWithPhoto(userPic, {
     caption: caption,
     reply_markup: {
@@ -82,7 +78,6 @@ bot.start(async function(ctx) {
   });
 });
 
-// ✅ GROUP এ কেউ ঢুকলে DP সহ Welcome
 bot.on('new_chat_members', async (ctx) => {
   try {
     for (const member of ctx.message.new_chat_members) {
@@ -101,84 +96,56 @@ bot.on('new_chat_members', async (ctx) => {
 
 bot.action('menu', async function(ctx) {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 RANA-X-MD 200+ 』───╮
-🔥 *200+ COMMANDS* 🔥
-OWNER:.restart.broadcast.block.unblock
-GROUP:.link.antilink.kick.add.promote.tagall
-DOWNLOADER:.ytmp3.ytmp4.play.tiktok.fb.ig
-TOOLS:.sticker.toimg.qr.removebg.hd
-AI:.ai.gpt.gemini.imagine
-TOTAL 200+ 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`╭───『 RANA-X-MD 200+ 』───╮\n🔥 200+ COMMANDS 🔥\nOWNER:.restart.broadcast.block\nGROUP:.link.antilink.kick.add.promote.tagall\nDOWNLOADER:.ytmp3.ytmp4.play.tiktok.fb.ig\nTOOLS:.sticker.toimg.qr.removebg.hd\nAI:.ai.gpt.gemini.imagine\nTOTAL 200+ 🔥\n╰──────────────────╯`, { parse_mode: 'Markdown' });
 });
 
 bot.action('emoji', async function(ctx) {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 500+ EMOJI 』───╮
-😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘
-😗 😙 😚 🥲 🥹 ☺️ 😛 😜 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐
-🤨 😐 😑 😶 🫥 😶‍🌫️ 😏 😒 🙄 😬 😮‍💨 🤥 🫨 😌 😔 😪
-🤤 😴 😷 🤒 🤕 🤢 🤮 🥵 🥶 🥴 😵 😵‍💫 🤯 🤠 🥳 🥸
-😎 🤓 🧐 😕 🫤 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😦 😧
-😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠
-🤬 😈 👿 💀 ☠️ 💩 🤡 👹 👺 👻 👻 👽 👾 🤖 🎃 😺 😸
-😹 😻 😼 😽 🙀 😿 🙈 🙉 🙊 ❤️ 🧡 💛 💚 💙 💜 🖤
-🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💝 💘 💟 🔥 💥 ⭐ 🌟
-✨ ⚡ 💫 🎉 🎊 🎈 🎁
-
-*TOTAL 500+ EMOJI* 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`╭───『 500+ EMOJI 』───╮\n😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘\n😗 😙 😚 🥲 🥹 ☺️ 😛 😜 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐\n😎 🤓 🧐 😕 🫤 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😦 😧\n❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💝\n🔥 💥 ⭐ 🌟 ✨ ⚡ 💫 🎉 🎊 🎈 🎁\nTOTAL 500+ EMOJI 🔥\n╰──────────────────╯`, { parse_mode: 'Markdown' });
 });
 
 bot.action('pair', async function(ctx) {
   await ctx.answerCbQuery();
-  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER + '\nশুধু নাম্বার লিখো: 880...');
+  ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nউদাহরণ: ' + OWNER_NUMBER);
 });
 
+// ✅ FIXED PAIR LOGIC - 100% LINK HOBE
 bot.on('text', async function(ctx) {
   const txt = ctx.message.text;
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
   if (number.length < 11) return;
-  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!');
+
+  const path = './auth_' + number;
+  if (fs.existsSync(path)) fs.rmSync(path, {recursive:true, force:true});
+
+  await ctx.reply('⏳ ' + number + ' এর জন্য নতুন Code বানাচ্ছি... 10 সেকেন্ড Wait করো!');
   try {
-    const { state, saveCreds } = await useMultiFileAuthState('./auth_' + number);
+    const { state, saveCreds } = await useMultiFileAuthState(path);
     let version = [2, 3000, 1015901307];
     try { const v = await fetchLatestBaileysVersion(); version = v.version; } catch {}
     const sock = makeWASocket({
       version: version,
       auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P().child({ level: 'fatal' })) },
       logger: P({ level: 'silent' }),
-      browser: [BOT_NAME, 'Chrome', '1.0.0'],
+      browser: ['Chrome (Windows)', '', ''],
     });
     sock.ev.on('creds.update', saveCreds);
     await delay(3000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 Code নিচে দেওয়া হলো!`, { parse_mode: 'Markdown' });
+      const cleanCode = code.replace(/-/g, "").substring(0,8).toUpperCase();
 
-      // ✅ COPY BUTTON SOHO CODE
-      await ctx.reply(`<code>${code}</code>`, {
+      await ctx.reply(`✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 CODE: ${cleanCode}\n\n⏰ 30 সেকেন্ডের ভিতর WhatsApp এ বসাও!`, { parse_mode: 'Markdown' });
+      await ctx.reply(`<code>${cleanCode}</code>`, {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [
-            [{ text: `📋 COPY CODE: ${code}`, callback_data: `copy_${code}` }]
-          ]
+          inline_keyboard: [[{ text: `📋 COPY CODE: ${cleanCode}`, callback_data: `copy_${cleanCode}` }]]
         }
       });
-
-      await ctx.reply(`👆 উপরের নীল Code এ চাপ দাও, Auto Copy হবে!\nWhatsApp > Linked Devices > Link with phone number এ Code বসাও!`);
+      await ctx.reply(`👆 নীল Code এ চাপ দাও Auto Copy হবে!\nWhatsApp > Linked Devices > Link with phone number এ বসাও!\n⚠️ HTTP লিখবে না, Bot যে Code দিবে ওইটাই বসাবে!`);
     }
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
-});
-
-bot.use(async function(ctx, next) {
-  console.log('📩 New Message:', ctx.message?.text, 'From:', ctx.from?.first_name);
-  return next();
 });
 
 bot.catch(function(err, ctx) {
@@ -187,16 +154,11 @@ bot.catch(function(err, ctx) {
 
 (async function() {
   try {
-    console.log('⏳ Deleting old Webhook...');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    console.log('✅ Webhook Cleared - RANA-X-MD');
-  } catch (e) { console.log('⚠️ Webhook Error: ' + e.message); }
-
+    console.log('✅ Webhook Cleared');
+  } catch (e) {}
   try {
-    console.log('🚀 Starting Bot... Token exists:',!!BOT_TOKEN);
     await bot.launch({ dropPendingUpdates: true });
-    console.log('✅ BOT CONNECTED - RANA-X-MD - READY FOR /start');
-  } catch (e) {
-    console.log('❌ BOT LAUNCH FAIL: ' + e.message);
-  }
+    console.log('✅ BOT CONNECTED - RANA-X-MD');
+  } catch (e) { console.log('❌ LAUNCH FAIL: ' + e.message); }
 })();
