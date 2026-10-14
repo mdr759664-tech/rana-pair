@@ -10,7 +10,7 @@ global.ownerName = "RANA";
 global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
 global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
 
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
 const P = require('pino');
 const express = require('express');
@@ -32,17 +32,13 @@ app.listen(PORT, '0.0.0.0', function() {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// One Tap Copy - Ok lekha asbe na, direct copy hobe
-bot.action(/copy_(.*)/, async function(ctx){
-  try{
-    await ctx.answerCbQuery('✅ Copied: ' + ctx.match[1]);
-  }catch{}
+// /pair কমান্ড যোগ করলাম - যে কেউ /pair লিখলেই কাজ করবে
+bot.command('pair', async (ctx) => {
+  await ctx.reply('📱 তোমার WhatsApp নাম্বার দাও ভাই\nযেকোনো দেশের নাম্বার দাও\nউদাহরণ: ' + OWNER_NUMBER);
 });
 
 bot.start(async function(ctx) {
   const name = ctx.from.first_name || 'Friend';
-
-  // User er DP ber kora
   let userPhoto = BOT_IMAGE;
   try {
     const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
@@ -52,7 +48,6 @@ bot.start(async function(ctx) {
       userPhoto = fileLink.href;
     }
   } catch (e) {
-    console.log('DP Error:', e.message);
     userPhoto = BOT_IMAGE;
   }
 
@@ -72,10 +67,8 @@ bot.start(async function(ctx) {
 ┃ 👑 মালিক: ${global.ownerName}
 ┃ 📞 নাম্বার: ${OWNER_NUMBER}
 ┃ 🟢 স্ট্যাটাস: Active ✅
-┃ ⚡ স্পিড: Ultra Fast
 ┗━━━━━━━━━━━━━━━━━━━━┛
 
-🎉 500+ Emoji | 200+ Commands 🔥
 👇 Pair Code নাও! 👇
 `;
 
@@ -94,27 +87,12 @@ bot.start(async function(ctx) {
 
 bot.action('menu', async function(ctx) {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 ${BOT_NAME} 200+ 』───╮
-🔥 *200+ COMMANDS* 🔥
-OWNER:.restart.broadcast.block.unblock
-GROUP:.link.antilink.kick.add.promote.tagall
-DOWNLOADER:.ytmp3.ytmp4.play.tiktok.fb.ig
-TOOLS:.sticker.toimg.qr.removebg.hd
-AI:.ai.gpt.gemini.imagine
-TOTAL 200+ 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`200+ COMMANDS 🔥\nOWNER:.restart.broadcast\nGROUP:.link.kick.tagall\nDOWNLOADER:.ytmp3.tiktok.fb\nTOTAL 200+ 🔥`);
 });
 
 bot.action('emoji', async function(ctx) {
   await ctx.answerCbQuery();
-  await ctx.reply(`
-╭───『 500+ EMOJI 』───╮
-😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘
-TOTAL 500+ 🔥
-╰──────────────────╯
-`, { parse_mode: 'Markdown' });
+  await ctx.reply(`500+ EMOJI 🔥 😀 😃 😄 😁 😆 😅 😂 🤣`);
 });
 
 bot.action('pair', async function(ctx) {
@@ -126,7 +104,7 @@ bot.on('text', async function(ctx) {
   const txt = ctx.message.text;
   if (txt.startsWith('/')) return;
   const number = txt.replace(/[^0-9]/g, '');
-  if (number.length < 11) return;
+  if (number.length < 10 || number.length > 15) return; // যেকোনো দেশের নাম্বার 10-15 ডিজিট
   await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 10 সেকেন্ড Wait করো!');
   try {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_' + number);
@@ -143,14 +121,13 @@ bot.on('text', async function(ctx) {
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
 
-      // One Tap Copy Button + Code Block
-      await ctx.replyWithMarkdownV2(`✅ *Pair Success\\!*\n\n📱 Number: ${number}\n🔑 CODE: \`${code}\`\n\nTap kore Copy koro 👇`);
-
-      await ctx.reply(`📋 COPY CODE: ${code}`, {
-        reply_markup: {
-          inline_keyboard: [[{ text: `📋 COPY: ${code}`, callback_data: `copy_${code}` }]]
-        }
-      });
+      // 100% SOTHIK ONE TAP COPY BUTTON
+      await ctx.replyWithMarkdown(
+        `✅ *Pair Success!*\n\n📱 Number: ${number}\n🔑 CODE: \`${code}\`\n\n👇 নিচের বাটনে চাপ দিলেই কপি হবে!`,
+        Markup.inlineKeyboard([
+          [Markup.button.copyText(`📋 COPY: ${code}`, code)]
+        ])
+      );
     }
   } catch (e) { ctx.reply('❌ Error! 2 মিনিট পর Try করো! ' + e.message); }
 });
@@ -159,34 +136,23 @@ bot.catch(function(err, ctx) {
   console.log('Bot Error:', err.message);
 });
 
-// --- RANA-X-MD SINGLE INSTANCE FIX ---
 let isRunning = false;
-
 async function startBot() {
-  if (isRunning) {
-    console.log('Bot already running, skipping...');
-    return;
-  }
+  if (isRunning) return;
   isRunning = true;
-
   try {
     console.log('Cleaning old sessions...');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
     await bot.telegram.callApi('close').catch(()=>{});
-    await new Promise(r => setTimeout(r, 5000)); // 5 sec wait
-    
+    await new Promise(r => setTimeout(r, 5000));
     await bot.launch({ dropPendingUpdates: true });
     console.log('✅ BOT CONNECTED - RANA-X-MD');
   } catch (e) {
     isRunning = false;
     console.log('BOT LAUNCH FAIL: ' + e.message);
-    console.log('Retrying in 20 sec...');
     setTimeout(startBot, 20000);
   }
 }
-
 startBot();
-
-// Graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
