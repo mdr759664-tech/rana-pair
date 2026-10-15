@@ -24,7 +24,7 @@ app.listen(process.env.PORT || 10000, '0.0.0.0', () => console.log('Port OK'));
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// PAIR LOGIC - যেকোনো দেশের নাম্বার
+// PAIR LOGIC
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
   if (number.length < 10) return ctx.reply('📱 ভাই নাম্বার দাও\nলিখো: /pair 8801636487523');
@@ -57,7 +57,6 @@ async function handlePair(ctx, input) {
     try { sock.ws.close(); } catch {}
     if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
   } catch (e) {
-    console.log('ERROR:', e.message);
     ctx.reply('❌ Error: ' + e.message + '\n2 মিনিট পর আবার Try করো!');
   }
 }
@@ -65,25 +64,23 @@ async function handlePair(ctx, input) {
 bot.command('pair', ctx => handlePair(ctx, ctx.message.text.replace('/pair', '')));
 bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i, '')));
 
-// START - DP সহ Welcome + তোমার দেওয়া সোজা Welcome
+// START - DP সহ Welcome
 bot.start(async ctx => {
   const name = ctx.from.first_name || 'Friend';
   let userPhoto = BOT_IMAGE;
   try {
     const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
     if (photos.total_count > 0) {
-      // যাকে Welcome জানাবে তার Profile Pic থাকবে
       userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
     }
   } catch {}
 
-  // তোমার দেওয়া সোজা Welcome
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
 ┃ 🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
-💗 স্বাগতম ${name} ভাই! 💗
+💗 স্বাগতম ${name}! 💗
 
 🧸 ${global.ownerName} 🧸
 🌸 ༉ • 🍒 ༉ • 💍 ༉
@@ -113,7 +110,6 @@ bot.start(async ctx => {
   });
 });
 
-// MENU 300+ COMMANDS
 bot.action('menu', async ctx => {
   await ctx.answerCbQuery();
   await ctx.reply(`
@@ -140,7 +136,6 @@ POWERED BY ${BOT_NAME}
 `, { parse_mode: 'Markdown' });
 });
 
-// EMOJI 1000+ RECENT
 bot.action('emoji', async ctx => {
   await ctx.answerCbQuery();
   await ctx.reply(`
