@@ -32,7 +32,9 @@ app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅ WEBHOOK MODE'));
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
   if (number.length < 10) return ctx.reply('📱 নাম্বার দাও\nলিখো: /pair 8801636487523');
-  if(number.startsWith('0')) number = '88' + number;
+  let number = input? input.replace(/[^0-9]/g, '') : '';
+if (number.length < 10) return ctx.reply('📱 নাম্বার দাও\nলিখো: /pair 8801837450067');
+if(number.startsWith('0')) number = '+88' + number;
 
   await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 15 সেকেন্ড Wait করো! 🙏');
   const authPath = './auth_' + number;
