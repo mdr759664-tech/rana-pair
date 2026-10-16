@@ -122,7 +122,7 @@ bot.start(async ctx => {
 
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
-┃ 🥷 ${BOT_NAME} 🥷 ┃
+┃ ┃ 🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
 💗 স্বাগতম ${name}! 💗
