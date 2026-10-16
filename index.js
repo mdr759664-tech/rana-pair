@@ -29,7 +29,7 @@ const bot = new Telegraf(BOT_TOKEN);
 // ====== PAIR LOGIC - WITH CALL REJECT MODE ======
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
-  if (number.length < 10) return ctx.reply('📱 ভাই নাম্বার দাও\nলিখো: /pair 8801636487523');
+  if (number.length < 10) return ctx.reply('📱  নাম্বার দাও\nলিখো: /pair 8801636487523');
   if(number.startsWith('0')) number = '88' + number;
 
   await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 15 সেকেন্ড Wait করো! 🙏');
@@ -112,7 +112,7 @@ bot.start(async ctx => {
   } catch {}
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
-┃ 🥷 ${BOT_NAME} 🥷 ┃
+┃  🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
 💗 স্বাগতম ${name}! 💗
@@ -153,7 +153,7 @@ async function startBot() {
   try {
     if (!BOT_TOKEN) throw new Error('BOT_TOKEN MISSING');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 8000));
     await bot.launch({ dropPendingUpdates: true });
     console.log('✅ BOT CONNECTED');
   } catch (e) {
