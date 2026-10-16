@@ -16,7 +16,7 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const BOT_NAME = global.botName;
 const CHANNEL_LINK = global.channelLink;
 const BOT_IMAGE = global.thumb;
-const OWNER_NUMBER = '8801636487523';
+const OWNER_NUMBER = '+8801636487523';
 const RENDER_URL = 'https://rana-pair.onrender.com';
 
 console.log('Checking BOT_TOKEN:', BOT_TOKEN? 'FOUND ✅' : 'MISSING ❌');
@@ -66,7 +66,7 @@ async function handlePair(ctx, input) {
       }
     });
 
-    await delay(8000); // তোমার চাওয়া 8000ms Fix
+    await delay(8000); //  8000ms Fix
 
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
@@ -113,7 +113,7 @@ bot.start(async ctx => {
   } catch {}
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
-┃ 🥷 ${BOT_NAME} 🥷 ┃
+┃ ┃ 🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
 💗 স্বাগতম ${name}! 💗
