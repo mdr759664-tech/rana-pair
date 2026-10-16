@@ -66,7 +66,7 @@ async function handlePair(ctx, input) {
       }
     });
 
-    await delay(15000); //  8000ms Fix
+    await delay(15000); //  15000ms Fix
 
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
