@@ -170,6 +170,8 @@ app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
 app.listen(process.env.PORT || 10000, '0.0.0.0', () => {
   console.log('✅ SERVER RUNNING');
 });
-bot.launch({ dropPendingUpdates: true }).then(() => {
-  console.log('✅ BOT STARTED - POLLING OK');
+bot.telegram.deleteWebhook().then(() => {
+  bot.launch({ dropPendingUpdates: true }).then(() => {
+    console.log('✅ BOT STARTED - POLLING OK');
+  });
 });
