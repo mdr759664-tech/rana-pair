@@ -150,13 +150,31 @@ bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`�
 bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 880...'); });
 bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
 
-// WEBHOOK - NO MORE 409 / TIMEOUT
+// WEBHOOK - WITH RETRY
 app.listen(process.env.PORT || 10000, '0.0.0.0', async () => {
   console.log('Port OK');
-  try {
-    await bot.telegram.setWebhook(`${RENDER_URL}/telegram`);
-    console.log('✅ WEBHOOK SET & BOT CONNECTED - No more 409/Timeout!');
-  } catch (e) {
-    console.log('Webhook Error:', e.message);
+  let tries = 0;
+  async function setHook() {
+    tries++;
+    try {
+      await bot.telegram.setWebhook(`${RENDER_URL}/telegram`);
+      console.log('✅ WEBHOOK SET & BOT CONNECTED - No more 409/Timeout!');
+    } catch (e) {
+      console.log(`Webhook Try ${tries} Failed: ${e.message}`);
+      if(tries < 5){
+        console.log('Retrying in 5 sec...');
+        setTimeout(setHook, 5000);
+      } else {
+        console.log('Webhook failed, trying polling fallback...');
+        try {
+          await bot.telegram.deleteWebhook();
+          await bot.launch({ dropPendingUpdates: true });
+          console.log('✅ POLLING FALLBACK CONNECTED');
+        } catch (err) {
+          console.log('Fallback also failed:', err.message);
+        }
+      }
+    }
   }
+  setHook();
 });
