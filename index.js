@@ -23,14 +23,18 @@ const app = express();
 app.use(express.json());
 const bot = new Telegraf(BOT_TOKEN);
 app.use(bot.webhookCallback('/telegram'));
-app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
+app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅ 🌍 All Country'));
 
-// ===== PAIR LOGIC - FIXED 100% =====
+// ===== PAIR LOGIC - ALL COUNTRY SUPPORTED 100% =====
 async function handlePair(ctx, input) {
   let number = input ? input.replace(/[^0-9]/g, '') : '';
-  if (number.length < 10) return ctx.reply('📱 Full Number দাও Country Code সহ\nEx: /pair 8801837450067');
+  
+  // 🌍 All Country: 8-15 Digit (BD +880, India +91, USA +1, UK +44, PK +92 etc)
+  if (number.length < 8 || number.length > 15) {
+    return ctx.reply('📱 Full Number দাও Country Code সহ 🌍\n\n🇧🇩 BD: /pair 8801837450067\n🇮🇳 India: /pair 919876543210\n🇵🇰 Pakistan: /pair 923001234567\n🇺🇸 USA: /pair 12025550123\n🇬🇧 UK: /pair 447700900000');
+  }
 
-  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 5 Sec Wait করো! 🙏`);
+  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 5 Sec Wait করো! 🙏 🌍`);
   const authPath = './auth_' + number;
   if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
 
@@ -55,8 +59,10 @@ async function handlePair(ctx, input) {
     });
     await delay(3000);
     if (!sock.authState.creds.registered) {
-      const code = await sock.requestPairingCode(number);
-      await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${code}\n\nWhatsApp > Linked Devices > Link with Phone Number`, {
+      let code = await sock.requestPairingCode(number);
+      code = code?.match(/.{1,4}/g)?.join('-');
+      
+      await ctx.reply(`✅ Pair Success! 🌍\n\n📱 Number: ${number}\n🔑 CODE: ${code}\n\nWhatsApp > Linked Devices > Link with Phone Number`, {
         reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE`, copy_text: { text: code } }]] }
       });
 
@@ -64,7 +70,7 @@ async function handlePair(ctx, input) {
       sock.ev.on('connection.update', async (up) => {
         if (up.connection === 'open') {
           connected = true;
-          await ctx.reply(`🎉 ${number} Connected! ✅`);
+          await ctx.reply(`🎉 ${number} Connected! ✅ 🌍`);
           await delay(5000);
           try { sock.ws.close(); } catch {}
           if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
@@ -111,7 +117,7 @@ bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i,
 
 bot.start(async ctx => {
   const name = ctx.from.first_name || 'Friend';
-  let userPhoto = BOT_IMAGE;
+  let userPhoto = global.thumb;
   try {
     const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
     if (photos.total_count > 0) {
@@ -155,11 +161,11 @@ bot.start(async ctx => {
   });
 });
 
-bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 8801837450067'); });
+bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair +8801837450067\n🌍 All Country Supported!'); });
 bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(MENU_400, { parse_mode: 'Markdown' }); });
 bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(EMOJI_500, { parse_mode: 'Markdown' }); });
-bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
+bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 8 && n.length <= 15) handlePair(ctx, n); });
 
 app.listen(process.env.PORT || 10000, '0.0.0.0', async () => {
-  try { await bot.telegram.setWebhook(`${RENDER_URL}/telegram`); console.log('✅ WEBHOOK SET'); } catch (e) { console.log(e.message); }
+  try { await bot.telegram.setWebhook(`${RENDER_URL}/telegram`); console.log('✅ WEBHOOK SET - ALL COUNTRY OK'); } catch (e) { console.log(e.message); }
 });
