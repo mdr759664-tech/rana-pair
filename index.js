@@ -1,5 +1,5 @@
-process.on('uncaughtException', e => console.log(e.message));
-process.on('unhandledRejection', e => console.log(e.message));
+process.on('uncaughtException', e => console.log('UNCAUGHT:', e.message, e.stack));
+process.on('unhandledRejection', e => console.log('REJECTED:', e.message, e.stack));
 
 global.botName = "RANA-X-MD";
 global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
@@ -18,13 +18,15 @@ const CHANNEL_LINK = global.channelLink;
 const BOT_IMAGE = global.thumb;
 const OWNER_NUMBER = '8801636487523';
 
+console.log('Checking BOT_TOKEN:', BOT_TOKEN? 'FOUND ✅' : 'MISSING ❌');
+
 const app = express();
 app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
 app.listen(process.env.PORT || 10000, '0.0.0.0', () => console.log('Port OK'));
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// PAIR LOGIC
+// ====== PAIR LOGIC - WITH CALL REJECT MODE ======
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
   if (number.length < 10) return ctx.reply('📱 ভাই নাম্বার দাও\nলিখো: /pair 8801636487523');
@@ -36,8 +38,12 @@ async function handlePair(ctx, input) {
 
   try {
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
-    let version = [2, 3000, 1015901307];
-    try { const v = await fetchLatestBaileysVersion(); version = v.version; } catch {}
+    let version;
+    try {
+      const v = await fetchLatestBaileysVersion();
+      version = v.version;
+    } catch { version = [2, 3000, 1015901307]; }
+
     const sock = makeWASocket({
       version: version,
       auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'fatal' }).child({ level: 'fatal' })) },
@@ -46,17 +52,48 @@ async function handlePair(ctx, input) {
       browser: ["Chrome", "Ubuntu", "20.0.04"],
     });
     sock.ev.on('creds.update', saveCreds);
-    await delay(8000);
+
+    // === CALL REJECT SYSTEM ===
+    sock.ev.on('call', async (calls) => {
+      for (let call of calls) {
+        if (call.status === 'offer') {
+          await sock.rejectCall(call.id, call.from);
+          await sock.sendMessage(call.from, { text: '*Call Rejected Automatically 📵*\n\n> _Bot Number, Call Not Allowed!_' });
+          console.log('Call Rejected from:', call.from);
+        }
+      }
+    });
+
+    await delay(5000);
+
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply('✅ Pair Success!\n\n📱 Number: ' + number + '\n🔑 CODE: ' + code + '\n\nWhatsApp > Linked Devices > Link with Phone Number', {
+      await ctx.reply('✅ Pair Success!\n\n📱 Number: ' + number + '\n🔑 CODE: ' + code + '\n\n⚠️ 20 সেকেন্ডের মধ্যে WhatsApp এ বসাও! 90 সেকেন্ড খোলা থাকবে!\nWhatsApp > Linked Devices > Link with Phone Number', {
         reply_markup: { inline_keyboard: [[{ text: '📋 COPY: ' + code, copy_text: { text: code } }]] }
       });
+
+      let connected = false;
+      sock.ev.on('connection.update', async (up) => {
+        if(up.connection === 'open'){
+          connected = true;
+          await ctx.reply('🎉 ' + number + ' WhatsApp Connected! ✅\n\n📵 Call Reject Mode: ON');
+          // 90 sec por o katbo na, karon call reject on rakhte hobe? na, ekhon katte hobe na hole render e thakbe
+          // Tai 10 sec por katbe
+          await delay(10000);
+          try { sock.ws.close(); } catch {}
+          if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
+        }
+      });
+
+      await delay(90000);
+      if(!connected){
+        try { sock.ws.close(); } catch {}
+        if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
+        await ctx.reply('⏰ Time Over! Code Expire হয়ে গেছে, আবার /pair দাও!');
+      }
     }
-    await delay(2000);
-    try { sock.ws.close(); } catch {}
-    if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
   } catch (e) {
+    console.log('Pair Error:', e.message);
     ctx.reply('❌ Error: ' + e.message + '\n2 মিনিট পর আবার Try করো!');
   }
 }
@@ -64,7 +101,6 @@ async function handlePair(ctx, input) {
 bot.command('pair', ctx => handlePair(ctx, ctx.message.text.replace('/pair', '')));
 bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i, '')));
 
-// START - DP সহ Welcome
 bot.start(async ctx => {
   const name = ctx.from.first_name || 'Friend';
   let userPhoto = BOT_IMAGE;
@@ -74,7 +110,6 @@ bot.start(async ctx => {
       userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
     }
   } catch {}
-
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
 ┃ 🥷 ${BOT_NAME} 🥷 ┃
@@ -97,7 +132,6 @@ bot.start(async ctx => {
 
 ⚡ POWERED BY ${BOT_NAME} 🖤
 `;
-
   await ctx.replyWithPhoto(userPhoto, {
     caption: caption,
     reply_markup: {
@@ -110,60 +144,21 @@ bot.start(async ctx => {
   });
 });
 
-bot.action('menu', async ctx => {
-  await ctx.answerCbQuery();
-  await ctx.reply(`
-🔥 *${BOT_NAME} - 300+ COMMANDS* 🔥
-
-*OWNER MENU:*
-.restart.broadcast.setpp.block.unblock
-
-*GROUP MENU:*
-.link.kick.add.promote.demote.tagall.hidetag.mute.unmute.group open/close.setname.setdesc
-
-*DOWNLOADER:*
-.ytmp3.ytmp4.tiktok.fb.insta.twitter.mediafire.gdrive.apk
-
-*CONVERTER:*
-.sticker.toimg.toaudio.tovideo
-
-*AI MENU:*
-.gpt.dalle.bard.ai.imagine
-
-*300+ MORE...* 🔥
-
-POWERED BY ${BOT_NAME}
-`, { parse_mode: 'Markdown' });
-});
-
-bot.action('emoji', async ctx => {
-  await ctx.answerCbQuery();
-  await ctx.reply(`
-🎭 *1000+ RECENT EMOJI* 🎭
-
-😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 ☺️ 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 🥲 🥹
-
-😛 😜 😝 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐 🤨 😐 😑 😶 🫥 😶‍🌫️ 😏 😒 🙄 😬 😮‍💨 🤥 🫨
-
-❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💝 💘 💟 💌 💋 🌹 🌷 🌸 🌺 🌻 🌼 🍒 🍓 🍎
-
-🔥 ✨ ⚡ 💫 🌟 ⭐ 🌙 ☀️ 🌈 🍷 🍸 🥂 🍾 💍 👑 🥷 🖤 💖 💗 💓
-
-*1000+ MORE EMOJI...* 🔥
-
-POWERED BY ${BOT_NAME}
-`, { parse_mode: 'Markdown' });
-});
-
+bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`🔥 *${BOT_NAME} - 300+ COMMANDS* 🔥\nPOWERED BY ${BOT_NAME}`, { parse_mode: 'Markdown' }); });
+bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`🎭 *1000+ EMOJI* 🎭\nPOWERED BY ${BOT_NAME}`, { parse_mode: 'Markdown' }); });
 bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 880...'); });
 bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
 
 async function startBot() {
   try {
+    if (!BOT_TOKEN) throw new Error('BOT_TOKEN MISSING');
     await bot.telegram.deleteWebhook({ drop_pending_updates: true });
     await new Promise(r => setTimeout(r, 5000));
     await bot.launch({ dropPendingUpdates: true });
     console.log('✅ BOT CONNECTED');
-  } catch (e) { setTimeout(startBot, 10000); }
+  } catch (e) {
+    console.log('❌ BOT LAUNCH FAILED:', e.message);
+    setTimeout(startBot, 10000);
+  }
 }
 startBot();
