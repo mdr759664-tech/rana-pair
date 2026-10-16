@@ -25,13 +25,12 @@ const bot = new Telegraf(BOT_TOKEN);
 app.use(bot.webhookCallback('/telegram'));
 app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
 
-// ===== PAIR LOGIC - FIXED NO DASH =====
+// ===== PAIR LOGIC - FIXED 100% =====
 async function handlePair(ctx, input) {
   let number = input ? input.replace(/[^0-9]/g, '') : '';
   if (number.length < 10) return ctx.reply('📱 Full Number দাও Country Code সহ\nEx: /pair 8801837450067');
-  if (number.startsWith('0')) number = '+88' + number;
 
-  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 20 Sec Wait করো! 🙏`);
+  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 5 Sec Wait করো! 🙏`);
   const authPath = './auth_' + number;
   if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
 
@@ -54,7 +53,7 @@ async function handlePair(ctx, input) {
         }
       }
     });
-    await delay(20000);
+    await delay(3000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
       await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${code}\n\nWhatsApp > Linked Devices > Link with Phone Number`, {
@@ -66,7 +65,7 @@ async function handlePair(ctx, input) {
         if (up.connection === 'open') {
           connected = true;
           await ctx.reply(`🎉 ${number} Connected! ✅`);
-          await delay(10000);
+          await delay(5000);
           try { sock.ws.close(); } catch {}
           if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
         }
@@ -75,7 +74,7 @@ async function handlePair(ctx, input) {
       if (!connected) {
         try { sock.ws.close(); } catch {}
         if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
-        await ctx.reply('⏰ Time Over! আবার /pair দাও!');
+        await ctx.reply('⏰ Time Over! আবার /pair দাও! 30 Sec এর মধ্যে Code বসাও!');
       }
     }
   } catch (e) { ctx.reply('❌ Error: ' + e.message); }
