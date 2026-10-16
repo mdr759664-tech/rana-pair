@@ -66,7 +66,7 @@ async function handlePair(ctx, input) {
       }
     });
 
-    await delay(8000); //  8000ms Fix
+    await delay(15000); //  8000ms Fix
 
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
@@ -80,7 +80,7 @@ async function handlePair(ctx, input) {
         if(up.connection === 'open'){
           connected = true;
           await ctx.reply(`🎉 ${number} WhatsApp Connected! ✅\n\n📵 Call Reject Mode: ON`);
-          await delay(10000);
+          await delay(15000);
           try { sock.ws.close(); } catch {}
           if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
         }
