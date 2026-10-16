@@ -166,6 +166,10 @@ bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(MEN
 bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(EMOJI_500, { parse_mode: 'Markdown' }); });
 bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 8 && n.length <= 15) handlePair(ctx, n); });
 
-app.listen(process.env.PORT || 10000, '0.0.0.0', async () => {
-  try { await bot.telegram.setWebhook(`${RENDER_URL}/telegram`); console.log('✅ WEBHOOK SET - ALL COUNTRY OK'); } catch (e) { console.log(e.message); }
+app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
+app.listen(process.env.PORT || 10000, '0.0.0.0', () => {
+  console.log('✅ SERVER RUNNING');
+});
+bot.launch({ dropPendingUpdates: true }).then(() => {
+  console.log('✅ BOT STARTED - POLLING OK');
 });
