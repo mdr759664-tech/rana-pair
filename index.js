@@ -57,9 +57,10 @@ async function handlePair(ctx, input) {
     await delay(20000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
-      await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${formattedCode}\n\n⚠️ Dash ছাড়া বসাও: ${code}\nWhatsApp > Linked Devices > Link with Phone Number`, {
-        reply_markup: { inline_keyboard: [[{ text: `📋 COPY: ${formattedCode}`, copy_text: { text: code } }]] }
+      const code = await sock.requestPairingCode(number);
+      await ctx.reply(`✅ Pair Success! Code: ${code}`, {
+        reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE`, copy_text: { text: code } }]] }
+      });
       });
       let connected = false;
       sock.ev.on('connection.update', async (up) => {
