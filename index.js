@@ -57,7 +57,6 @@ async function handlePair(ctx, input) {
     await delay(20000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      const code = await sock.requestPairingCode(number);
       await ctx.reply(`✅ Pair Success! Code: ${code}`, {
         reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE`, copy_text: { text: code } }]] }
       });
