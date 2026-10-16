@@ -1,5 +1,5 @@
-process.on('uncaughtException', e => console.log('UNCAUGHT:', e.message, e.stack));
-process.on('unhandledRejection', e => console.log('REJECTED:', e.message, e.stack));
+process.on('uncaughtException', e => console.log('UNCAUGHT:', e.message));
+process.on('unhandledRejection', e => console.log('REJECTED:', e.message));
 
 global.botName = "RANA-X-MD";
 global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
@@ -19,87 +19,93 @@ const BOT_IMAGE = global.thumb;
 const OWNER_NUMBER = '+8801636487523';
 const RENDER_URL = 'https://rana-pair.onrender.com';
 
-console.log('Checking BOT_TOKEN:', BOT_TOKEN? 'FOUND ✅' : 'MISSING ❌');
-
 const app = express();
 app.use(express.json());
 const bot = new Telegraf(BOT_TOKEN);
 app.use(bot.webhookCallback('/telegram'));
+app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
 
-app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅ WEBHOOK MODE'));
-
-// ====== PAIR LOGIC - 8000ms DELAY + CALL REJECT ======
+// ===== PAIR LOGIC - FIXED + ALL COUNTRY =====
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
-  if (number.length < 10) return ctx.reply('📱 নাম্বার দাও\nলিখো: /pair 8801636487523');
-  let number = input? input.replace(/[^0-9]/g, '') : '';
-if (number.length < 10) return ctx.reply('📱 নাম্বার দাও\nলিখো: /pair 8801837450067');
-if(number.startsWith('0')) number = '+88' + number;
+  if (number.length < 10) return ctx.reply('📱 Full Number দাও Country Code সহ\nEx: /pair 8801837450067');
+  if(number.startsWith('0')) number = '88' + number;
 
-  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 15 সেকেন্ড Wait করো! 🙏');
+  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 20 Sec Wait করো! 🙏`);
   const authPath = './auth_' + number;
   if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
 
   try {
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
-    let version;
-    try {
-      const v = await fetchLatestBaileysVersion();
-      version = v.version;
-    } catch { version = [2, 3000, 1015901307]; }
-
+    const { version } = await fetchLatestBaileysVersion();
     const sock = makeWASocket({
-      version: version,
+      version,
       auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'fatal' }).child({ level: 'fatal' })) },
-      printQRInTerminal: false,
       logger: P({ level: 'silent' }),
-      browser: ["Chrome", "Ubuntu", "20.0.04"],
+      browser: ["Chrome", "Windows", "10"],
+      markOnlineOnConnect: false,
+      syncFullHistory: false
     });
     sock.ev.on('creds.update', saveCreds);
-
-    // === CALL REJECT SYSTEM 📵 ===
     sock.ev.on('call', async (calls) => {
       for (let call of calls) {
         if (call.status === 'offer') {
           await sock.rejectCall(call.id, call.from);
-          await sock.sendMessage(call.from, { text: '*Call Rejected Automatically 📵*\n\n> _Bot Number, Call Not Allowed!_' });
-          console.log('Call Rejected from:', call.from);
         }
       }
     });
-
-    await delay(20000); //  20000ms Fix
-
+    await delay(20000);
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
       const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
-      await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${formattedCode}\n\n⚠️ 20 সেকেন্ডের মধ্যে WhatsApp এ বসাও! 120 সেকেন্ড খোলা থাকবে!\nWhatsApp > Linked Devices > Link with Phone Number`, {
-        reply_markup: { inline_keyboard: [[{ text: `📋 COPY: ${formattedCode}`, copy_text: { text: formattedCode } }]] }
+      await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${formattedCode}\n\n⚠️ Dash ছাড়া বসাও: ${code}\nWhatsApp > Linked Devices > Link with Phone Number`, {
+        reply_markup: { inline_keyboard: [[{ text: `📋 COPY: ${formattedCode}`, copy_text: { text: code } }]] }
       });
-
       let connected = false;
       sock.ev.on('connection.update', async (up) => {
         if(up.connection === 'open'){
           connected = true;
-          await ctx.reply(`🎉 ${number} WhatsApp Connected! ✅\n\n📵 Call Reject Mode: ON`);
-          await delay(15000);
+          await ctx.reply(`🎉 ${number} Connected! ✅`);
+          await delay(10000);
           try { sock.ws.close(); } catch {}
           if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
         }
       });
-
-      await delay(120000); // 120 sec
+      await delay(120000);
       if(!connected){
         try { sock.ws.close(); } catch {}
         if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
-        await ctx.reply('⏰ Time Over! Code Expire হয়ে গেছে, আবার /pair দাও!');
+        await ctx.reply('⏰ Time Over! আবার /pair দাও!');
       }
     }
-  } catch (e) {
-    console.log('Pair Error:', e.message);
-    ctx.reply('❌ Error: ' + e.message + '\n2 মিনিট পর আবার Try করো!');
-  }
+  } catch (e) { ctx.reply('❌ Error: ' + e.message); }
 }
+
+const MENU_400 = `
+🔥 *${global.botName} - 400+ COMMANDS* 🔥
+
+🌸 *GROUP [100+]*: .link, .antilink, .welcome on/off, .goodbye, .promote, .demote, .kick, .add, .tagall, .hidetag, .group open/close, .setname, .setdesc, .revoke, .warn etc
+🎭 *STICKER [50+]*: .sticker, .s, .take, .steal, .emojimix, .attp, .ttp, .toimg
+🎬 *DOWNLOADER [60+]*: .play, .ytmp3, .ytmp4, .fb, .ig, .tiktok, .mediafire, .apk, .pinterest
+🖼️ *ANIME [80+]*: .waifu, .neko, .hug, .kiss, .pat, .slap, .kill, .wink
+🛠️ *TOOLS [70+]*: .calc, .google, .weather, .translate, .removebg, .remini, .qrcode, .ss
+👑 *OWNER [40+]*: .restart, .broadcast, .ban, .block
+
+*TOTAL 400+ ✅*
+`;
+
+const EMOJI_500 = `
+🎭 *500+ EMOJI COLLECTION* 🎭
+
+❤️ 💙 💚 💛 🧡 💜 🖤 🤍 🤎 💔 💕 💞 💓 💗 💖 💝 💘
+😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘
+🌸 🌺 🌹 🌻 🌼 🌷 💐 🌲 🌳 🌴 🌿 ☘️ 🍀 🍁 🍂
+🎈 🎉 🎊 🎂 🎁 🎀 🎆 🎇 ✨ 🎈 🎊
+😎 🔥 💯 💢 💥 ⭐ 🌟 ⚡ 💪 👑 😈 💀 👻 🤖
+🐬 🦋 🌸 🍒 💍 🍷 🌷 ✨ 🥀 💖 🧸 💗 🥷
+
+*TOTAL 500+ ADDED ✅*
+`;
 
 bot.command('pair', ctx => handlePair(ctx, ctx.message.text.replace('/pair', '')));
 bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i, '')));
@@ -113,9 +119,10 @@ bot.start(async ctx => {
       userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
     }
   } catch {}
+
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
-┃ ┃ 🥷 ${BOT_NAME} 🥷 ┃
+┃ 🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
 💗 স্বাগতম ${name}! 💗
@@ -130,53 +137,30 @@ bot.start(async ctx => {
 ┏━━━━━━━━━━━━━━━━━━┓
 ┃ 👤 ইউজার: ${name}
 ┃ 👑 মালিক: RANA-X-MD
+┃ 🌍 সব দেশ সাপোর্ট: ✅
 ┃ 🟢 Active ✅
 ┗━━━━━━━━━━━━━━━━━━┛
 
 ⚡ POWERED BY ${BOT_NAME} 🖤
 `;
+
   await ctx.replyWithPhoto(userPhoto, {
     caption: caption,
     reply_markup: {
       inline_keyboard: [
         [{ text: '🔗 পেয়ার কোড নাও', callback_data: 'pair' }],
-        [{ text: '📜 মেনু [300+]', callback_data: 'menu' }, { text: '🎭 Emoji [1000+]', callback_data: 'emoji' }],
+        [{ text: '📜 মেনু [400+]', callback_data: 'menu' }, { text: '🎭 Emoji [500+]', callback_data: 'emoji' }],
         [{ text: '📢 চ্যানেল', url: CHANNEL_LINK }, { text: '👑 মালিক', url: 'https://wa.me/' + OWNER_NUMBER }]
       ]
     }
   });
 });
 
-bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`🔥 *${BOT_NAME} - 300+ COMMANDS* 🔥\nPOWERED BY ${BOT_NAME}`, { parse_mode: 'Markdown' }); });
-bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`🎭 *1000+ EMOJI* 🎭\nPOWERED BY ${BOT_NAME}`, { parse_mode: 'Markdown' }); });
-bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 880...'); });
+bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 8801837450067'); });
+bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(MENU_400, { parse_mode: 'Markdown' }); });
+bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(EMOJI_500, { parse_mode: 'Markdown' }); });
 bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
 
-// WEBHOOK - WITH RETRY
 app.listen(process.env.PORT || 10000, '0.0.0.0', async () => {
-  console.log('Port OK');
-  let tries = 0;
-  async function setHook() {
-    tries++;
-    try {
-      await bot.telegram.setWebhook(`${RENDER_URL}/telegram`);
-      console.log('✅ WEBHOOK SET & BOT CONNECTED - No more 409/Timeout!');
-    } catch (e) {
-      console.log(`Webhook Try ${tries} Failed: ${e.message}`);
-      if(tries < 5){
-        console.log('Retrying in 5 sec...');
-        setTimeout(setHook, 5000);
-      } else {
-        console.log('Webhook failed, trying polling fallback...');
-        try {
-          await bot.telegram.deleteWebhook();
-          await bot.launch({ dropPendingUpdates: true });
-          console.log('✅ POLLING FALLBACK CONNECTED');
-        } catch (err) {
-          console.log('Fallback also failed:', err.message);
-        }
-      }
-    }
-  }
-  setHook();
+  try { await bot.telegram.setWebhook(`${RENDER_URL}/telegram`); console.log('✅ WEBHOOK SET'); } catch (e) { console.log(e.message); }
 });
