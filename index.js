@@ -17,19 +17,21 @@ const BOT_NAME = global.botName;
 const CHANNEL_LINK = global.channelLink;
 const BOT_IMAGE = global.thumb;
 const OWNER_NUMBER = '8801636487523';
+const RENDER_URL = 'https://rana-pair.onrender.com';
 
 console.log('Checking BOT_TOKEN:', BOT_TOKEN? 'FOUND ✅' : 'MISSING ❌');
 
 const app = express();
-app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
-app.listen(process.env.PORT || 10000, '0.0.0.0', () => console.log('Port OK'));
-
+app.use(express.json());
 const bot = new Telegraf(BOT_TOKEN);
+app.use(bot.webhookCallback('/telegram'));
 
-// ====== PAIR LOGIC - WITH CALL REJECT MODE ======
+app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅ WEBHOOK MODE'));
+
+// ====== PAIR LOGIC - 8000ms DELAY + CALL REJECT ======
 async function handlePair(ctx, input) {
   let number = input? input.replace(/[^0-9]/g, '') : '';
-  if (number.length < 10) return ctx.reply('📱  নাম্বার দাও\nলিখো: /pair 8801636487523');
+  if (number.length < 10) return ctx.reply('📱 নাম্বার দাও\nলিখো: /pair 8801636487523');
   if(number.startsWith('0')) number = '88' + number;
 
   await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 15 সেকেন্ড Wait করো! 🙏');
@@ -53,7 +55,7 @@ async function handlePair(ctx, input) {
     });
     sock.ev.on('creds.update', saveCreds);
 
-    // === CALL REJECT SYSTEM ===
+    // === CALL REJECT SYSTEM 📵 ===
     sock.ev.on('call', async (calls) => {
       for (let call of calls) {
         if (call.status === 'offer') {
@@ -64,28 +66,27 @@ async function handlePair(ctx, input) {
       }
     });
 
-    await delay(5000);
+    await delay(8000); // তোমার চাওয়া 8000ms Fix
 
     if (!sock.authState.creds.registered) {
       const code = await sock.requestPairingCode(number);
-      await ctx.reply('✅ Pair Success!\n\n📱 Number: ' + number + '\n🔑 CODE: ' + code + '\n\n⚠️ 20 সেকেন্ডের মধ্যে WhatsApp এ বসাও! 90 সেকেন্ড খোলা থাকবে!\nWhatsApp > Linked Devices > Link with Phone Number', {
-        reply_markup: { inline_keyboard: [[{ text: '📋 COPY: ' + code, copy_text: { text: code } }]] }
+      const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
+      await ctx.reply(`✅ Pair Success!\n\n📱 Number: ${number}\n🔑 CODE: ${formattedCode}\n\n⚠️ 20 সেকেন্ডের মধ্যে WhatsApp এ বসাও! 120 সেকেন্ড খোলা থাকবে!\nWhatsApp > Linked Devices > Link with Phone Number`, {
+        reply_markup: { inline_keyboard: [[{ text: `📋 COPY: ${formattedCode}`, copy_text: { text: formattedCode } }]] }
       });
 
       let connected = false;
       sock.ev.on('connection.update', async (up) => {
         if(up.connection === 'open'){
           connected = true;
-          await ctx.reply('🎉 ' + number + ' WhatsApp Connected! ✅\n\n📵 Call Reject Mode: ON');
-          // 90 sec por o katbo na, karon call reject on rakhte hobe? na, ekhon katte hobe na hole render e thakbe
-          // Tai 10 sec por katbe
+          await ctx.reply(`🎉 ${number} WhatsApp Connected! ✅\n\n📵 Call Reject Mode: ON`);
           await delay(10000);
           try { sock.ws.close(); } catch {}
           if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
         }
       });
 
-      await delay(90000);
+      await delay(120000); // 120 sec
       if(!connected){
         try { sock.ws.close(); } catch {}
         if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
@@ -112,7 +113,7 @@ bot.start(async ctx => {
   } catch {}
   const caption = `
 ╭━━━━━━━━━━━━━━━━━━━━╮
-┃  🥷 ${BOT_NAME} 🥷 ┃
+┃ 🥷 ${BOT_NAME} 🥷 ┃
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
 💗 স্বাগতম ${name}! 💗
@@ -126,7 +127,7 @@ bot.start(async ctx => {
 
 ┏━━━━━━━━━━━━━━━━━━┓
 ┃ 👤 ইউজার: ${name}
-┃ 👑 মালিক: RANA
+┃ 👑 মালিক: RANA-X-MD
 ┃ 🟢 Active ✅
 ┗━━━━━━━━━━━━━━━━━━┛
 
@@ -149,16 +150,13 @@ bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(`�
 bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 880...'); });
 bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
 
-async function startBot() {
+// WEBHOOK - NO MORE 409 / TIMEOUT
+app.listen(process.env.PORT || 10000, '0.0.0.0', async () => {
+  console.log('Port OK');
   try {
-    if (!BOT_TOKEN) throw new Error('BOT_TOKEN MISSING');
-    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
-    await new Promise(r => setTimeout(r, 8000));
-    await bot.launch({ dropPendingUpdates: true });
-    console.log('✅ BOT CONNECTED');
+    await bot.telegram.setWebhook(`${RENDER_URL}/telegram`);
+    console.log('✅ WEBHOOK SET & BOT CONNECTED - No more 409/Timeout!');
   } catch (e) {
-    console.log('❌ BOT LAUNCH FAILED:', e.message);
-    setTimeout(startBot, 10000);
+    console.log('Webhook Error:', e.message);
   }
-}
-startBot();
+});
