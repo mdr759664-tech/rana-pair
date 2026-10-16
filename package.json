@@ -9,8 +9,6 @@
     "telegraf": "^4.16.3",
     "@whiskeysockets/baileys": "github:WhiskeySockets/Baileys",
     "pino": "^9.6.0",
-    "express": "^4.19.2",
-    "qrcode-reader": "^1.0.4",
-    "jimp": "^0.22.12"
+    "express": "^4.19.2"
   }
 }
