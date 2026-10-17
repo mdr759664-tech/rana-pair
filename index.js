@@ -153,6 +153,20 @@ app.get('/', (req,res)=>res.send(BOT_NAME+' Running ✅'));
 app.listen(process.env.PORT||10000,'0.0.0.0',()=>{ console.log('✅ SERVER RUNNING'); startBot(); });
 
 (async()=>{
-  try{ await bot.telegram.deleteWebhook(); }catch(e){ console.log("Webhook skip"); }
-  try{ await bot.launch({dropPendingUpdates:true}); console.log('✅ BOT STARTED - Google Chrome (Ubuntu) Active'); }catch(e){ console.log("Launch Error:", e.message); }
+  for(let i=0;i<5;i++){
+    try{ 
+      await bot.telegram.deleteWebhook({drop_pending_updates:true}); 
+      break;
+    }catch(e){ await new Promise(r=>setTimeout(r,1000)); }
+  }
+  for(let i=0;i<5;i++){
+    try{ 
+      await bot.launch({dropPendingUpdates:true}); 
+      console.log('✅ BOT STARTED - Google Chrome (Ubuntu) Active'); 
+      break;
+    }catch(e){ 
+      console.log(`Launch Retry ${i+1}:`, e.message); 
+      await new Promise(r=>setTimeout(r,3000));
+    }
+  }
 })();
