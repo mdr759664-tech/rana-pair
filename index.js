@@ -89,7 +89,15 @@ async function handlePair(ctx, input) {
       let code=null; for(let i=0;i<6;i++){ try{ code=await sock.requestPairingCode(number); if(code) break; }catch{ await delay(600); } }
       if(!code) return ctx.reply('❌ Failed! আবার Try করো!');
       code=code.match(/.{1,4}/g).join('-');
-      await ctx.reply(`✅ PAIRING CODE FOR ${number}:\n\n${code}\n\nWhatsApp > Linked Devices > Link with phone number > Paste this code`, {parse_mode: undefined});
+      await ctx.reply(`✅ PAIRING CODE FOR ${number}\n\n🔑 CODE: ${code}\n\nWhatsApp > Linked Devices > Link with phone number > Paste this code`, {
+  parse_mode: undefined,
+  reply_markup: {
+    inline_keyboard: [
+      [{ text: `📋 COPY: ${code}`, copy_text: { text: code } }],
+      [{ text: `✅ CODE: ${code}`, callback_data: `copy_${code}` }]
+    ]
+  }
+});
       sock.ev.on('connection.update',async(up)=>{
         if(up.connection==='open'){
           if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
