@@ -31,7 +31,7 @@ function getCountry(n){
 }
 async function getVersion(){ try{ let {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1023223823]; } }
 
-// ✅ STABLE WELCOME - আগের মতোই, PP সহ, লরচর করবে না
+// ✅ STABLE WELCOME - , PP , 
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
   try{
@@ -97,7 +97,8 @@ async function handlePair(ctx, input) {
           try{sock.ws.close();}catch{} if(fs.existsSync(authPath)) fs.rmSync(authPath,{recursive:true,force:true}); setTimeout(()=>startBot(),1200);
         }
       });
-      await delay(60000);
+      await delay(120000);
+try{sock.ws.close();}catch{}
     }
   }catch(e){ ctx.reply('❌ Error: '+e.message, {parse_mode:undefined}); }
 }
