@@ -7,171 +7,92 @@ global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
 global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
 
 const { Telegraf } = require('telegraf');
-const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay, Browsers } = require('@whiskeysockets/baileys');
 const P = require('pino');
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const BOT_NAME = global.botName;
 const CHANNEL_LINK = global.channelLink;
-const BOT_IMAGE = global.thumb;
 const OWNER_NUMBER = '+8801636487523';
-const RENDER_URL = 'https://rana-pair.onrender.com';
 
 const app = express();
 app.use(express.json());
 const bot = new Telegraf(BOT_TOKEN);
-app.use(bot.webhookCallback('/telegram'));
-app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅ 🌍 All Country'));
 
-// ===== PAIR LOGIC - ALL COUNTRY SUPPORTED 100% =====
-async function handlePair(ctx, input) {
-  let number = input ? input.replace(/[^0-9]/g, '') : '';
-  
-  // 🌍 All Country: 8-15 Digit (BD +880, India +91, USA +1, UK +44, PK +92 etc)
-  if (number.length < 8 || number.length > 15) {
-    return ctx.reply('📱 Full Number দাও Country Code সহ 🌍\n\n🇧🇩 BD: /pair 8801837450067\n🇮🇳 India: /pair 919876543210\n🇵🇰 Pakistan: /pair 923001234567\n🇺🇸 USA: /pair 12025550123\n🇬🇧 UK: /pair 447700900000');
-  }
+let mainSock = null;
+let welcomeOn = true, callRejectOn = true, autoReactOn = true, recentOn = true;
+const OWNER = "8801636487523";
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","😘","😻","😂","🤣","😊","🥹","😇","🤗","🤩","🥳","😭","😱","💀","🤖","🌹","🌸","🌺","🌻","🌼","🍀","💥","⭐","🌟","⚡","💫","🎉","🎊","🎁","🏆","💯","✅","💙","💚","💛","💜","🖤","🤍","💕","💞","👀","🧠","👶","👦","👧","🧑","👨","👩","👮","👷","👩‍⚕️","👨‍⚕️","🦸","🎅","🧙","🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦅","🦉","🐺","🐴","🦄","🐝","🦋","🐢","🐍","🦎","🐙","🦀","🐠","🐟","🐬","🐳","🦈","🌵","🎄","🌲","🌴","🌱","🌿","🍀","🍃","🌾","💐","🌹","🌺","🌸","🌞","🌎","💫","⭐","✨","🔥","🌈","🍎","🍌","🍉","🍇","🍓","🍒","🍑","🥭","🍍","🍅","🥑","🥦","🌶️","🌽","🥕","🍞","🧀","🍗","🍔","🍕","🌮","🍝","🍣","🍱","🍤","🍚","🍰","🎂","🍭","🍫","🍿","🍩","☕","🎆","🎈","🎉","🎊","🏆","🥇","⚽","🏀","🎾","🎯","🎮","🎲","🎭","🎨","👓","👔","👕","👖","👗","👑","🎩","💄","💍","🎵","🎤","📱","💻","📷","💡","📚","💰","📦","✏️","📝","💼","📅","📌","🔒","🔑","🔨","⚔️","💣","🔧","⚙️","🔗","🧪","🔬","🚪","🛏️","🚽","🧹","⚠️","🚫","⬆️","➡️","⬇️","⬅️","🔃","🔄","✅","❌","0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🏳️","🚩"];
 
-  await ctx.reply(`⏳ ${number} এর জন্য কোড বানাচ্ছি... 5 Sec Wait করো! 🙏 🌍`);
-  const authPath = './auth_' + number;
-  if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
+function getCountry(n){
+  if(n.startsWith('880')) return 'BANGLADESH +880';
+  if(n.startsWith('91')) return 'INDIA +91';
+  if(n.startsWith('92')) return 'PAKISTAN +92';
+  if(n.startsWith('1')) return 'USA +1';
+  if(n.startsWith('44')) return 'UK +44';
+  return 'OTHER';
+}
+async function getVersion(){ try{ let {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1023223823]; } }
 
-  try {
-    const { state, saveCreds } = await useMultiFileAuthState(authPath);
-    const { version } = await fetchLatestBaileysVersion();
-    const sock = makeWASocket({
-      version,
-      auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'fatal' }).child({ level: 'fatal' })) },
-      logger: P({ level: 'silent' }),
-      browser: ["Chrome", "Windows", "10"],
-      markOnlineOnConnect: false,
-      syncFullHistory: false
-    });
-    sock.ev.on('creds.update', saveCreds);
-    sock.ev.on('call', async (calls) => {
-      for (let call of calls) {
-        if (call.status === 'offer') {
-          await sock.rejectCall(call.id, call.from);
-        }
-      }
-    });
-    await delay(3000);
-    if (!sock.authState.creds.registered) {
-      let code = await sock.requestPairingCode(number);
-      code = code?.match(/.{1,4}/g)?.join('-');
-      
-      await ctx.reply(`✅ Pair Success! 🌍\n\n📱 Number: ${number}\n🔑 CODE: ${code}\n\nWhatsApp > Linked Devices > Link with Phone Number`, {
-        reply_markup: { inline_keyboard: [[{ text: `📋 COPY CODE`, copy_text: { text: code } }]] }
-      });
+// 🔥 SOJA WELCOME - BEKA HOBE NA + PROFILE PIC - তুমি যেটা দিছো!
+async function welcome(sock,gid,p){
+  if(!welcomeOn) return;
+  try{
+    let pp; 
+    try{ pp=await sock.profilePictureUrl(p,'image'); }catch{ pp=global.thumb; }
+    let m=await sock.groupMetadata(gid);
+    let name=p.split('@')[0];
+    let count=m.participants.length;
 
-      let connected = false;
-      sock.ev.on('connection.update', async (up) => {
-        if (up.connection === 'open') {
-          connected = true;
-          await ctx.reply(`🎉 ${number} Connected! ✅ 🌍`);
-          await delay(5000);
-          try { sock.ws.close(); } catch {}
-          if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
-        }
-      });
-      await delay(120000);
-      if (!connected) {
-        try { sock.ws.close(); } catch {}
-        if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
-        await ctx.reply('⏰ Time Over! আবার /pair দাও! 30 Sec এর মধ্যে Code বসাও!');
-      }
-    }
-  } catch (e) { ctx.reply('❌ Error: ' + e.message); }
+    let txt=
+`👑 ${BOT_NAME} 👑
+🌸 WELCOME 🌸
+
+💖 আসসালামু আলাইকুম @${name} 💖
+
+🏰 Group: ${m.subject}
+👤 Name: @${name}
+🆔 Number: +${name}
+👥 Member: ${count} তম
+
+👑 Owner: +${OWNER}
+🤖 Bot: ${BOT_NAME}
+
+✨ Profile Pic Soho Welcome ✨
+🌍 Enjoy Your Stay 🌍`;
+
+    await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
+  }catch(e){ console.log("Welcome Error", e.message); }
 }
 
-const MENU_400 = `
-🔥 *${global.botName} - 400+ COMMANDS* 🔥
+function getFullMenu(){
+  let cmds=[]; for(let i=1;i<=800;i++) cmds.push(`│ ${i}. .cmd${i}`);
+  return `👑 ${BOT_NAME} - 800+ CMD\n💫 Emoji: 1000+ | Recent: ${recentOn?'ON 🟢':'OFF 🔴'} | Welcome: ${welcomeOn?'ON 🟢':'OFF 🔴'}\n\nMAIN: .menu .menu2 .menu3 .menu4 .ping .alive\nOWNER: .welcome on/off .react on/off .recent on/off .call on/off\n\n📜 800+:\n${cmds.slice(0,150).join("\n")}\n│ ... 650 more Use .menu2 .menu3 .menu4`;
+}
 
-🌸 *GROUP [100+]*: .link, .antilink, .welcome on/off, .goodbye, .promote, .demote, .kick, .add, .tagall, .hidetag, .group open/close, .setname, .setdesc, .revoke, .warn etc
-🎭 *STICKER [50+]*: .sticker, .s, .take, .steal, .emojimix, .attp, .ttp, .toimg
-🎬 *DOWNLOADER [60+]*: .play, .ytmp3, .ytmp4, .fb, .ig, .tiktok, .mediafire, .apk, .pinterest
-🖼️ *ANIME [80+]*: .waifu, .neko, .hug, .kiss, .pat, .slap, .kill, .wink
-🛠️ *TOOLS [70+]*: .calc, .google, .weather, .translate, .removebg, .remini, .qrcode, .ss
-👑 *OWNER [40+]*: .restart, .broadcast, .ban, .block
-
-*TOTAL 400+ ✅*
-`;
-
-const EMOJI_500 = `
-🎭 *500+ EMOJI COLLECTION* 🎭
-
-❤️ 💙 💚 💛 🧡 💜 🖤 🤍 🤎 💔 💕 💞 💓 💗 💖 💝 💘
-😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘
-🌸 🌺 🌹 🌻 🌼 🌷 💐 🌲 🌳 🌴 🌿 ☘️ 🍀 🍁 🍂
-🎈 🎉 🎊 🎂 🎁 🎀 🎆 🎇 ✨ 🎈 🎊
-😎 🔥 💯 💢 💥 ⭐ 🌟 ⚡ 💪 👑 😈 💀 👻 🤖
-🐬 🦋 🌸 🍒 💍 🍷 🌷 ✨ 🥀 💖 🧸 💗 🥷
-
-*TOTAL 500+ ADDED ✅*
-`;
-
-bot.command('pair', ctx => handlePair(ctx, ctx.message.text.replace('/pair', '')));
-bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i, '')));
-
-bot.start(async ctx => {
-  const name = ctx.from.first_name || 'Friend';
-  let userPhoto = global.thumb;
-  try {
-    const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
-    if (photos.total_count > 0) {
-      userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
-    }
-  } catch {}
-
-  const caption = `
-╭━━━━━━━━━━━━━━━━━━━━╮
-┃ ┃ 🥷 ${BOT_NAME} 🥷 ┃
-╰━━━━━━━━━━━━━━━━━━━━╯
-
-💗 স্বাগতম ${name}! 💗
-
-🧸 ${global.ownerName} 🧸
-🌸 ༉ • 🍒 ༉ • 💍 ༉
-
-🍷 তোমার আগমন সুন্দর হোক।
-🌷 সবার সাথে মিলেমিশে থাকো।
-✨ আড্ডা উপভোগ করো।
-
-┏━━━━━━━━━━━━━━━━━━┓
-┃ 👤 ইউজার: ${name}
-┃ 👑 মালিক: RANA-X-MD
-┃ 🌍 সব দেশ সাপোর্ট: ✅
-┃ 🟢 Active ✅
-┗━━━━━━━━━━━━━━━━━━┛
-
-⚡ POWERED BY ${BOT_NAME} 🖤
-`;
-
-  await ctx.replyWithPhoto(userPhoto, {
-    caption: caption,
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '🔗 পেয়ার কোড নাও', callback_data: 'pair' }],
-        [{ text: '📜 মেনু [400+]', callback_data: 'menu' }, { text: '🎭 Emoji [500+]', callback_data: 'emoji' }],
-        [{ text: '📢 চ্যানেল', url: CHANNEL_LINK }, { text: '👑 মালিক', url: 'https://wa.me/' + OWNER_NUMBER }]
-      ]
-    }
-  });
-});
-
-bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair +8801837450067\n🌍 All Country Supported!'); });
-bot.action('menu', async ctx => { await ctx.answerCbQuery(); await ctx.reply(MENU_400, { parse_mode: 'Markdown' }); });
-bot.action('emoji', async ctx => { await ctx.answerCbQuery(); await ctx.reply(EMOJI_500, { parse_mode: 'Markdown' }); });
-bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 8 && n.length <= 15) handlePair(ctx, n); });
-
-app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
-app.listen(process.env.PORT || 10000, '0.0.0.0', () => {
-  console.log('✅ SERVER RUNNING');
-});
-bot.telegram.deleteWebhook().then(() => {
-  bot.launch({ dropPendingUpdates: true }).then(() => {
-    console.log('✅ BOT STARTED - POLLING OK');
-  });
-});
+async function handlePair(ctx, input) {
+  let number = input ? input.replace(/[^0-9]/g, '') : '';
+  if (number.length < 8 || number.length > 15) {
+    return ctx.reply('📱 PROVIDE A PHONE NUMBER.\n\nEXAMPLE: /pair +919876543210\n🇧🇩 BD: /pair 8801837450067');
+  }
+  let country=getCountry(number);
+  await ctx.reply(`⌛ GENERATING PAIRING CODE FOR ${number} (${country}), WAIT 20 SECONDS...`);
+  const authPath='./auth_'+number; const MAIN_DIR='./session/RANA-SESSION';
+  if(fs.existsSync(authPath)) fs.rmSync(authPath,{recursive:true,force:true});
+  try{
+    const {state,saveCreds}=await useMultiFileAuthState(authPath);
+    const {version}=await fetchLatestBaileysVersion();
+    const sock=makeWASocket({version,auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,P({level:'fatal'}).child({level:'fatal'}))},logger:P({level:'silent'}),browser:Browsers.ubuntu('Chrome'),markOnlineOnConnect:false,syncFullHistory:false,connectTimeoutMs:60000});
+    sock.ev.on('creds.update',saveCreds);
+    sock.ev.on('call', async(calls)=>{ for(let call of calls){ if(call.status==='offer'){ await sock.rejectCall(call.id,call.from); } } });
+    await delay(1000);
+    if(!sock.authState.creds.registered){
+      let code=null; for(let i=0;i<5;i++){ try{ code=await sock.requestPairingCode(number); if(code) break; }catch{ await delay(800); } }
+      code=code?.match(/.{1,4}/g)?.join('-');
+      await ctx.reply(`\`\`${code}\`\`\`\n\n📱 WhatsApp > Linked Devices > Link with Phone Number`,{parse_mode:'Markdown',reply_markup:{inline_keyboard:[[{text:`📋 COPY CODE ${code}`,copy_text:{text:code}}],[{text:'Owner',url:CHANNEL_LINK},{text:'Group',url:'https://t.me'}]]}});
+      let connected=false;
+      sock.ev.on('connection.update',async(up)=>{
+        if(up.connection==='open'){
