@@ -29,9 +29,17 @@ function getCountry(n){
   if(n.startsWith('92')) return 'PAKISTAN +92';
   return 'OTHER';
 }
-async function getVersion(){ try{ let {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1023223823]; } }
 
-// ✅ STABLE WELCOME - , PP , 
+// FIXED VERSION FUNCTION
+async function getVersion(){ 
+  try{ 
+    let {version} = await fetchLatestBaileysVersion(); 
+    return version; 
+  }catch{ 
+    return [2, 3000, 1027934701]; 
+  } 
+}
+
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
   try{
@@ -93,12 +101,12 @@ async function handlePair(ctx, input) {
           if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
           fs.mkdirSync(MAIN_DIR,{recursive:true});
           fs.readdirSync(authPath).forEach(f=>{ fs.copyFileSync(path.join(authPath,f),path.join(MAIN_DIR,f)); });
-          await ctx.reply(`✅ CONNECTED +${number}\n⚡ MacOS Chrome Active - Professional`, {parse_mode:undefined});
+          await ctx.reply(`✅ CONNECTED +${number}\n⚡ MacOS Chrome Active`, {parse_mode:undefined});
           try{sock.ws.close();}catch{} if(fs.existsSync(authPath)) fs.rmSync(authPath,{recursive:true,force:true}); setTimeout(()=>startBot(),1200);
         }
       });
       await delay(120000);
-try{sock.ws.close();}catch{}
+      try{sock.ws.close();}catch{}
     }
   }catch(e){ ctx.reply('❌ Error: '+e.message, {parse_mode:undefined}); }
 }
@@ -116,20 +124,9 @@ async function startBot(){
       markOnlineOnConnect:false,
     });
     sock.ev.on('creds.update',saveCreds);
-    sock.ev.on('connection.update',(u)=>{ if(u.connection==='close') setTimeout(startBot,3000); if(u.connection==='open') console.log('✅ CONNECTED - MacOS Active - Soja Welcome'); });
+    sock.ev.on('connection.update',(u)=>{ if(u.connection==='close') setTimeout(startBot,3000); if(u.connection==='open') console.log('✅ CONNECTED - MacOS Active'); });
     sock.ev.on('group-participants.update', async(u)=>{ for(let p of u.participants){ if(u.action=='add') await welcome(sock,u.id,p); } });
     sock.ev.on('call', async(c)=>{ if(!callRejectOn) return; for(let x of c){ if(x.status=='offer') await sock.rejectCall(x.id,x.from); } });
-    sock.ev.on('messages.upsert', async(m)=>{
-      try{
-        const msg=m.messages[0]; if(!msg.message||msg.key.fromMe) return;
-        const from=msg.key.remoteJid; const isGroup=from.endsWith('@g.us');
-        const body=msg.message.conversation||msg.message.extendedTextMessage?.text||"";
-        if(!body.startsWith(".")) return;
-        let cmd=body.slice(1).trim().split(" ")[0].toLowerCase();
-        if(cmd==="menu") await sock.sendMessage(from,{text:`👑 ${BOT_NAME} MENU\nWelcome: ${welcomeOn?'ON':'OFF'}`});
-        else if(cmd==="ping") await sock.sendMessage(from,{text:`⚡ PONG! MacOS Active`});
-      }catch{}
-    });
   }catch(e){ setTimeout(startBot,3000); }
 }
 
@@ -138,7 +135,7 @@ bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i,
 bot.start(async ctx => {
   const name=ctx.from.first_name||'Friend'; let userPhoto=global.thumb;
   try{ const p=await ctx.telegram.getUserProfilePhotos(ctx.from.id,0,1); if(p.total_count>0) userPhoto=p.photos[0][p.photos[0].length-1].file_id; }catch{}
-  await ctx.replyWithPhoto(userPhoto,{caption:`👑 ${BOT_NAME}\n⚡ MacOS Chrome Active - Professional\n👋 Soja Welcome PP`,reply_markup:{inline_keyboard:[[{text:'🔗 পেয়ার কোড নাও',callback_data:'pair'}]]}});
+  await ctx.replyWithPhoto(userPhoto,{caption:`👑 ${BOT_NAME}\n⚡ MacOS Chrome Active\n👋 Welcome`,reply_markup:{inline_keyboard:[[{text:'🔗 পেয়ার কোড নাও',callback_data:'pair'}]]}});
 });
 bot.action('pair', async ctx=>{ await ctx.answerCbQuery(); ctx.reply('📱 /pair 8801837450067 লেখো', {parse_mode:undefined}); });
 bot.on('text', ctx=>{ if(ctx.message.text.startsWith('/')) return; const n=ctx.message.text.replace(/[^0-9]/g,''); if(n.length>=8&&n.length<=15) handlePair(ctx,n); });
@@ -147,5 +144,5 @@ app.get('/', (req,res)=>res.send(BOT_NAME+' Running ✅'));
 app.listen(process.env.PORT||10000,'0.0.0.0',()=>{ console.log('✅ SERVER RUNNING'); startBot(); });
 (async()=>{
   for(let i=0;i<5;i++){ try{ await bot.telegram.deleteWebhook({drop_pending_updates:true}); break; }catch(e){ await new Promise(r=>setTimeout(r,1000)); } }
-  for(let i=0;i<5;i++){ try{ await bot.launch({dropPendingUpdates:true}); console.log('✅ BOT STARTED - MacOS Active - Soja Welcome'); break; }catch(e){ console.log(`Retry ${i+1}:`, e.message); await new Promise(r=>setTimeout(r,3000)); } }
+  for(let i=0;i<5;i++){ try{ await bot.launch({dropPendingUpdates:true}); console.log('✅ BOT STARTED'); break; }catch(e){ console.log(`Retry ${i+1}:`, e.message); await new Promise(r=>setTimeout(r,3000)); } }
 })();
