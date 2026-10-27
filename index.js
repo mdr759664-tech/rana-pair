@@ -1,206 +1,174 @@
-import express from 'express';
-import { default as makeWASocket, useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
-import pino from 'pino';
-import fs from 'fs';
-import QRCode from 'qrcode';
-import path from 'path';
+process.on('uncaughtException', e => console.log(e.message));
+process.on('unhandledRejection', e => console.log(e.message));
+
+global.botName = "RANA-X-MD";
+global.ownerName = "🐬⃟ᴠͥɪͣᴘͫ×͜×🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔";
+global.channelLink = "https://whatsapp.com/channel/0029VbDjPSq9mrGZ25AYA021";
+global.thumb = "https://i.ibb.co/tHWJrz3/IMG-20231128-WA0005.jpg";
+
+const { Telegraf } = require('telegraf');
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, delay } = require('@whiskeysockets/baileys');
+const P = require('pino');
+const express = require('express');
+const fs = require('fs');
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const BOT_NAME = global.botName;
+const CHANNEL_LINK = global.channelLink;
+const BOT_IMAGE = global.thumb;
+const OWNER_NUMBER = '8801636487523';
 
 const app = express();
-const OWNER = "8801636487523";
-const BOT_NAME = "RANA-X-VIP-BOT";
-const BOT_PIC = "https://i.ibb.co/4ZqDk7Yp/3d-crown-golden-logo-with-ai-generated-free-png.png";
-const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-let mainSock = null, qrSock = null;
-let welcomeOn = true, callRejectOn = true, autoReactOn = true, recentOn = true;
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍"];
+app.get('/', (req, res) => res.send(BOT_NAME + ' Running ✅'));
+app.listen(process.env.PORT || 10000, '0.0.0.0', () => console.log('Port OK'));
 
-async function getVersion(){ 
+const bot = new Telegraf(BOT_TOKEN);
+
+// PAIR LOGIC - যেকোনো দেশের নাম্বার
+async function handlePair(ctx, input) {
+  let number = input? input.replace(/[^0-9]/g, '') : '';
+  if (number.length < 10) return ctx.reply('📱 ভাই নাম্বার দাও\nলিখো: /pair 8801636487523');
+  if(number.startsWith('0')) number = '88' + number;
+
+  await ctx.reply('⏳ ' + number + ' এর জন্য কোড বানাচ্ছি... 15 সেকেন্ড Wait করো! 🙏');
+  const authPath = './auth_' + number;
+  if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
+
   try {
-    const { version } = await fetchLatestBaileysVersion();
-    return version;
-  } catch { return [2,3000,1015901307]; }
+    const { state, saveCreds } = await useMultiFileAuthState(authPath);
+    let version = [2, 3000, 1015901307];
+    try { const v = await fetchLatestBaileysVersion(); version = v.version; } catch {}
+    const sock = makeWASocket({
+      version: version,
+      auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'fatal' }).child({ level: 'fatal' })) },
+      printQRInTerminal: false,
+      logger: P({ level: 'silent' }),
+      browser: ["Chrome", "Ubuntu", "20.0.04"],
+    });
+    sock.ev.on('creds.update', saveCreds);
+    await delay(8000);
+    if (!sock.authState.creds.registered) {
+      const code = await sock.requestPairingCode(number);
+      await ctx.reply('✅ Pair Success!\n\n📱 Number: ' + number + '\n🔑 CODE: ' + code + '\n\nWhatsApp > Linked Devices > Link with Phone Number', {
+        reply_markup: { inline_keyboard: [[{ text: '📋 COPY: ' + code, copy_text: { text: code } }]] }
+      });
+    }
+    await delay(2000);
+    try { sock.ws.close(); } catch {}
+    if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
+  } catch (e) {
+    console.log('ERROR:', e.message);
+    ctx.reply('❌ Error: ' + e.message + '\n2 মিনিট পর আবার Try করো!');
+  }
 }
 
-async function welcome(sock,gid,p){
-  if(!welcomeOn) return;
-  try{
-    let pp;
-    try{ pp = await sock.profilePictureUrl(p, 'image'); }catch{ pp = BOT_PIC; }
-    let m = await sock.groupMetadata(gid);
-    let newMember = p.split('@')[0];
-    let memberCount = m.participants.length;
-    let time = new Date().toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit',hour12:true});
-    let date = new Date().toLocaleDateString('en-BD');
-    let txt = `╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
+bot.command('pair', ctx => handlePair(ctx, ctx.message.text.replace('/pair', '')));
+bot.hears(/^\/pair/i, ctx => handlePair(ctx, ctx.message.text.replace(/\/pair/i, '')));
 
-   👑 ${BOT_NAME} 👑
+// START - DP সহ Welcome + তোমার দেওয়া সোজা Welcome
+bot.start(async ctx => {
+  const name = ctx.from.first_name || 'Friend';
+  let userPhoto = BOT_IMAGE;
+  try {
+    const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
+    if (photos.total_count > 0) {
+      // যাকে Welcome জানাবে তার Profile Pic থাকবে
+      userPhoto = photos.photos[0][photos.photos[0].length - 1].file_id;
+    }
+  } catch {}
 
-   আসসালামু আলাইকুম ওয়া 
-   রহমাতুল্লাহি ওয়া বারাকাতুহু 💖
+  // তোমার দেওয়া সোজা Welcome
+  const caption = `
+╭━━━━━━━━━━━━━━━━━━━━╮
+┃ 🥷 ${BOT_NAME} 🥷 ┃
+╰━━━━━━━━━━━━━━━━━━━━╯
 
-   প্রিয় @${newMember} ভাই/আপু
-   আপনাকে আমাদের পরিবারে
-   জানাই আন্তরিক স্বাগতম 🥰
+💗 স্বাগতম ${name} ভাই! 💗
+
+🧸 ${global.ownerName} 🧸
+🌸 ༉ • 🍒 ༉ • 💍 ༉
+
+🍷 তোমার আগমন সুন্দর হোক।
+🌷 সবার সাথে মিলেমিশে থাকো।
+✨ আড্ডা উপভোগ করো।
 
 ┏━━━━━━━━━━━━━━━━━━┓
-┃  🏰 গ্রুপ: ${m.subject}
-┃  👤 নাম: @${newMember}
-┃  🆔 নাম্বার: +${newMember}
-┃  👥 আপনি ${memberCount} তম সদস্য
-┃  🕒 সময়: ${time}
-┃  📅 তারিখ: ${date}
+┃ 👤 ইউজার: ${name}
+┃ 👑 মালিক: RANA
+┃ 🟢 Active ✅
 ┗━━━━━━━━━━━━━━━━━━┛
 
-   🌸 গ্রুপের নিয়ম মেনে চলবেন 🌸
-   ✨ প্রোফাইল পিক সহ স্বাগতম ✨
+⚡ POWERED BY ${BOT_NAME} 🖤
+`;
 
-╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯
+  await ctx.replyWithPhoto(userPhoto, {
+    caption: caption,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔗 পেয়ার কোড নাও', callback_data: 'pair' }],
+        [{ text: '📜 মেনু [300+]', callback_data: 'menu' }, { text: '🎭 Emoji [1000+]', callback_data: 'emoji' }],
+        [{ text: '📢 চ্যানেল', url: CHANNEL_LINK }, { text: '👑 মালিক', url: 'https://wa.me/' + OWNER_NUMBER }]
+      ]
+    }
+  });
+});
 
-👑 Owner: +${OWNER}
-🤖 Bot: ${BOT_NAME}`;
-    await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
-  }catch(e){}
+// MENU 300+ COMMANDS
+bot.action('menu', async ctx => {
+  await ctx.answerCbQuery();
+  await ctx.reply(`
+🔥 *${BOT_NAME} - 300+ COMMANDS* 🔥
+
+*OWNER MENU:*
+.restart.broadcast.setpp.block.unblock
+
+*GROUP MENU:*
+.link.kick.add.promote.demote.tagall.hidetag.mute.unmute.group open/close.setname.setdesc
+
+*DOWNLOADER:*
+.ytmp3.ytmp4.tiktok.fb.insta.twitter.mediafire.gdrive.apk
+
+*CONVERTER:*
+.sticker.toimg.toaudio.tovideo
+
+*AI MENU:*
+.gpt.dalle.bard.ai.imagine
+
+*300+ MORE...* 🔥
+
+POWERED BY ${BOT_NAME}
+`, { parse_mode: 'Markdown' });
+});
+
+// EMOJI 1000+ RECENT
+bot.action('emoji', async ctx => {
+  await ctx.answerCbQuery();
+  await ctx.reply(`
+🎭 *1000+ RECENT EMOJI* 🎭
+
+😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 ☺️ 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 🥲 🥹
+
+😛 😜 😝 😝 🤑 🤗 🤭 🤫 🤔 🫡 🤐 🤨 😐 😑 😶 🫥 😶‍🌫️ 😏 😒 🙄 😬 😮‍💨 🤥 🫨
+
+❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💝 💘 💟 💌 💋 🌹 🌷 🌸 🌺 🌻 🌼 🍒 🍓 🍎
+
+🔥 ✨ ⚡ 💫 🌟 ⭐ 🌙 ☀️ 🌈 🍷 🍸 🥂 🍾 💍 👑 🥷 🖤 💖 💗 💓
+
+*1000+ MORE EMOJI...* 🔥
+
+POWERED BY ${BOT_NAME}
+`, { parse_mode: 'Markdown' });
+});
+
+bot.action('pair', async ctx => { await ctx.answerCbQuery(); ctx.reply('📱 নাম্বার দাও: /pair 880...'); });
+bot.on('text', ctx => { if (ctx.message.text.startsWith('/')) return; const n = ctx.message.text.replace(/[^0-9]/g, ''); if (n.length >= 10) handlePair(ctx, n); });
+
+async function startBot() {
+  try {
+    await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+    await new Promise(r => setTimeout(r, 5000));
+    await bot.launch({ dropPendingUpdates: true });
+    console.log('✅ BOT CONNECTED');
+  } catch (e) { setTimeout(startBot, 10000); }
 }
-
-app.get('/', (req,res)=>{
-  res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA ULTRA 800+</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box;font-weight:700}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:16px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #22c55e}.code{font-size:32px;font-weight:900;color:#15803d;letter-spacing:3px}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>🔥 বাংলা স্বাগতম | FAST 10s | 800+ 🔥</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">⚡ Pair Code নাও</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:10px 16px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">QR Generate - FAST</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh</button></div></div><div id=res></div></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n||n.length<11){alert('Valid Number dao - 8801XXXXXXXXX');return}b.style.display='none';r.style.display='block';r.innerText='⚡ Generating... 15 sec wait koro';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - abar try koro';r.style.background='#fee2e2';}}function copyCode(){let t=document.getElementById('code').innerText;if(!t){alert('❌ Code নাই!');return;}if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(()=>{alert('✅ Copied: '+t)}).catch(()=>{fallbackCopy(t)});}else{fallbackCopy(t);}function fallbackCopy(text){let ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');alert('✅ Copied: '+text);}catch{alert('❌ Copy Failed! Code: '+text);}document.body.removeChild(ta);}}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');let r=document.getElementById('res');let s=document.getElementById('qrstatus');img.removeAttribute('src');box.style.display='none';r.style.display='block';r.innerText='Generating QR... 15 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;box.style.display='block';r.style.display='none';s.innerText='Scan within 60 sec';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - abar try koro';r.style.background='#fee2e2';}}<\/script></body></html>`);
-});
-
-app.get('/pair', async (req,res)=>{
-  let pairSock = null;
-  try{
-    let num = req.query.number ? req.query.number.replace(/[^0-9]/g,'') : '';
-    if(!num) return res.json({error:"Number dao"});
-    if(num.startsWith('0')) num = '88' + num;
-    if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; }
-    if(qrSock){ try{ qrSock.end(); }catch{} qrSock=null; }
-    const PAIR_DIR = './session/PAIR-TEMP';
-    if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
-    fs.mkdirSync(PAIR_DIR,{recursive:true});
-    const {state, saveCreds} = await useMultiFileAuthState(PAIR_DIR);
-    let version = await getVersion();
-    pairSock = makeWASocket({ 
-      version, 
-      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
-      logger:pino({level:'silent'}), 
-      browser: Browsers.macOS('Chrome'),
-      syncFullHistory:false, 
-      markOnlineOnConnect:false, 
-      printQRInTerminal:false,
-      connectTimeoutMs: 60000,
-      keepAliveIntervalMs: 15000
-    });
-    pairSock.ev.on('creds.update', saveCreds);
-    let paired=false;
-    pairSock.ev.on('connection.update', async (u)=>{
-      if(u.connection==='open' && !paired){
-        paired=true;
-        const MAIN_DIR='./session/RANA-SESSION';
-        if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
-        fs.mkdirSync(MAIN_DIR,{recursive:true});
-        fs.readdirSync(PAIR_DIR).forEach(f=>{ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN_DIR,f)); });
-        try{ pairSock.end(); }catch{} setTimeout(()=>startBot(),3000);
-      }
-    });
-    await new Promise(r=>setTimeout(r,3500));
-    let code = await pairSock.requestPairingCode(num);
-    code = code.match(/.{1,4}/g)?.join("-") || code;
-    res.json({code});
-    setTimeout(()=>{ try{ if(!paired) pairSock.end(); }catch{} },180000);
-  }catch(e){ res.json({error:e.message}); try{ pairSock.end(); }catch{} }
-});
-
-app.get('/qr', async (req,res)=>{
-  let qrSent = false;
-  try{
-    if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; }
-    if(qrSock){ try{ qrSock.end(); }catch{} qrSock=null; }
-    const QR_DIR = './session/QR-TEMP';
-    if(fs.existsSync(QR_DIR)) fs.rmSync(QR_DIR,{recursive:true,force:true});
-    fs.mkdirSync(QR_DIR,{recursive:true});
-    const {state, saveCreds} = await useMultiFileAuthState(QR_DIR);
-    let version = await getVersion();
-    qrSock = makeWASocket({ 
-      version, 
-      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
-      logger:pino({level:'silent'}), 
-      browser: Browsers.macOS('Chrome'),
-      syncFullHistory:false, 
-      printQRInTerminal:false,
-      connectTimeoutMs: 60000
-    });
-    qrSock.ev.on('creds.update', saveCreds);
-    qrSock.ev.on('connection.update', async (u)=>{
-      if(u.qr && !qrSent){
-        qrSent = true;
-        let qrImage = await QRCode.toDataURL(u.qr, { width: 300 });
-        res.json({qr: qrImage});
-      }
-      if(u.connection==='open'){
-        const MAIN_DIR='./session/RANA-SESSION';
-        if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
-        fs.mkdirSync(MAIN_DIR,{recursive:true});
-        fs.readdirSync(QR_DIR).forEach(f=>{ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN_DIR,f)); });
-        try{ qrSock.end(); }catch{} qrSock=null;
-        setTimeout(()=>startBot(),2000);
-      }
-    });
-    setTimeout(()=>{
-      if(!qrSent && !res.headersSent){
-        res.json({error:"QR Timeout - abar Generate চাপো"});
-        try{ qrSock.end(); }catch{}
-      }
-    }, 30000);
-  }catch(e){ if(!res.headersSent) res.json({error:e.message}); }
-});
-
-app.get('/clear', (req,res)=>{
-  try{
-    ['PAIR-TEMP','QR-TEMP','RANA-SESSION'].forEach(d=>{
-      const dir = './session/'+d;
-      if(fs.existsSync(dir)) fs.rmSync(dir,{recursive:true,force:true});
-    });
-    res.send("✅ Session Cleared - abar try koro");
-  }catch(e){ res.send("Error: "+e.message); }
-});
-
-async function startBot(){
-  try{
-    const SESSION_DIR = './session/RANA-SESSION';
-    if(!fs.existsSync(SESSION_DIR)) return;
-    const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR);
-    let version = await getVersion();
-    const sock=makeWASocket({ 
-      version, 
-      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
-      logger:pino({level:'silent'}), 
-      browser:Browsers.macOS('Chrome'),
-      syncFullHistory:false 
-    });
-    mainSock=sock;
-    sock.ev.on('creds.update',saveCreds);
-    sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ Connected!'); } });
-    sock.ev.on('group-participants.update', async (u)=>{ for(let p of u.participants){ if(u.action=='add') await welcome(sock,u.id,p); } });
-    sock.ev.on('call', async (c)=>{ if(!callRejectOn) return; for(let x of c){ if(x.status=='offer'){ await sock.rejectCall(x.id,x.from); } } });
-    sock.ev.on('messages.upsert', async (m)=>{
-      try{
-        const msg=m.messages[0]; if(!msg.message||msg.key.fromMe) return;
-        const from=msg.key.remoteJid; const isGroup=from.endsWith('@g.us');
-        const body=msg.message.conversation||msg.message.extendedTextMessage?.text||"";
-        if(isGroup && autoReactOn){
-          let e=EMOJI[Math.floor(Math.random()*EMOJI.length)];
-          await sock.sendMessage(from,{react:{text:e,key:msg.key}});
-        }
-        let prefix = "."; if(!body.startsWith(prefix)) return;
-        let cmd = body.slice(1).trim().split(" ")[0].toLowerCase();
-        if(cmd==="menu" || cmd==="help" || cmd==="ping"){
-          await sock.sendMessage(from,{text:`👑 ${BOT_NAME} ALIVE! বাংলা Welcome ON`});
-        }
-      }catch(e){}
-    });
-  }catch(e){ setTimeout(startBot,5000); }
-}
-
-console.log('⚡ RANA-X-VIP Starting FIXED...');
-const PORT = process.env.SERVER_PORT || process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', ()=>{ startBot(); console.log('FIXED Server running on '+PORT); });
+startBot();
